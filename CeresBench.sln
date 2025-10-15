@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36202.13 d17.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CeresBench", "CeresBench\CeresBench.csproj", "{2DCFDB4D-B9F8-9972-F531-6B2779961FEA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CeresBench.Desktop", "CeresBench.Desktop\CeresBench.Desktop.csproj", "{633AB88E-40C0-1179-FCBD-05C1983FF0DE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2DCFDB4D-B9F8-9972-F531-6B2779961FEA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2DCFDB4D-B9F8-9972-F531-6B2779961FEA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2DCFDB4D-B9F8-9972-F531-6B2779961FEA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2DCFDB4D-B9F8-9972-F531-6B2779961FEA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{633AB88E-40C0-1179-FCBD-05C1983FF0DE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{633AB88E-40C0-1179-FCBD-05C1983FF0DE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{633AB88E-40C0-1179-FCBD-05C1983FF0DE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{633AB88E-40C0-1179-FCBD-05C1983FF0DE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0A71A007-8D68-4ACA-8191-8D9F27EFED13}
+	EndGlobalSection
+EndGlobal
