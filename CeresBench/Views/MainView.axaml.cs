@@ -8,4 +8,8 @@ public partial class MainView : UserControl
     {
         InitializeComponent();
     }
+
+    private void TextBlock_ActualThemeVariantChanged(object? sender, System.EventArgs e)
+    {
+    }
 }

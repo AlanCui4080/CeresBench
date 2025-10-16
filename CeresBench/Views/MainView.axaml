@@ -11,6 +11,65 @@
          to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
     <vm:MainViewModel />
   </Design.DataContext>
+  <SplitView IsPaneOpen="True" PanePlacement="Right" DisplayMode="Inline">
+	  <SplitView.Pane>
+		  <StackPanel Margin="10,5,10,10">
 
-  <TextBlock Text="{Binding Greeting}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+			  <TextBlock Margin="0,0,0,10" HorizontalAlignment="Left" FontSize="20" Text="Instrument" />
+			  <ComboBox ItemsSource="{Binding VisaResourceList}" Margin="0,0,0,5">
+				  <ComboBox.ItemTemplate>
+                      <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+							<TextBlock VerticalAlignment="Center" Text="{Binding FriendlyName}" FontSize="16" Margin="0,0,10,0"/>
+                            <TextBlock VerticalAlignment="Center" Text="{Binding VisaResourceName}" TextTrimming="CharacterEllipsis" FontSize="12"/>
+                        </StackPanel>
+                      </DataTemplate>
+                  </ComboBox.ItemTemplate>
+              </ComboBox>
+              <StackPanel>
+			      <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                      <TextBlock Grid.Column="0" Text="Status:" FontSize="16"/>
+                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="Presented" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                      <TextBlock Grid.Column="0" Text="Interface:" FontSize="16"/>
+                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="TCPIP0" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                      <TextBlock Grid.Column="0" Text="Vendor:" FontSize="16"/>
+                      <TextBlock Grid.Column="2"  VerticalAlignment="Bottom" Text="HEWLETT-PACKARD" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                      <TextBlock Grid.Column="0" Text="Model:" FontSize="16"/>
+                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="34401A" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                      <TextBlock Grid.Column="0" Text="Serial Number:" FontSize="16"/>
+                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="0" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                      <TextBlock Grid.Column="0" Text="Firmware:" FontSize="16"/>
+                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="11-5-3" />
+                  </Grid>
+              </StackPanel>
+
+			  <TextBlock Margin="0,10,0,5" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="20" Text="VISA" />
+              <StackPanel>
+				 <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                     <TextBlock Grid.Column="0" Text="Library:" FontSize="16"/>
+                     <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISALibrary}" />
+                 </Grid>
+                 <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                     <TextBlock Grid.Column="0" Text="Version:" FontSize="16"/>
+                     <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISAVersion}" />
+                 </Grid>
+                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                     <TextBlock Grid.Column="0" Text="Sepcification:" FontSize="16"/>
+                     <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISASpecification}" />
+                 </Grid>
+              </StackPanel>
+          </StackPanel>
+      </SplitView.Pane>
+		  <TextBlock>Y</TextBlock>
+  </SplitView>
 </UserControl>
