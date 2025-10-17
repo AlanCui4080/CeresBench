@@ -29,6 +29,6 @@ public partial class MainViewModel : ViewModelBase
     public string CurrentlyUsedVISAVersion => _visaResourceManagerModel.VisaLibraryVersion.ToString();
     public string CurrentlyUsedVISASpecification => _visaResourceManagerModel.VisaSpecificationVersion.ToString();
 
-    public List<VisaAddressItem> VisaResourceList = new();
+    public List<VisaAddressItem> VisaResourceList => _visaResourceManagerModel.Find();
 
 }
