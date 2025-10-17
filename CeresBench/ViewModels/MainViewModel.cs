@@ -22,12 +22,14 @@ public partial class MainViewModel : ViewModelBase
 
     public string Greeting => "Welcome to Avalonia!";
 
-
     private VISAResourceManagerModel _visaResourceManagerModel = new();
 
     public string CurrentlyUsedVISALibrary => _visaResourceManagerModel.VisaManufacture;
     public string CurrentlyUsedVISAVersion => _visaResourceManagerModel.VisaLibraryVersion.ToString();
     public string CurrentlyUsedVISASpecification => _visaResourceManagerModel.VisaSpecificationVersion.ToString();
+
+    [ObservableProperty]
+    private int _visaResouceSelectedIndex;
 
     public List<VisaAddressItem> VisaResourceList => _visaResourceManagerModel.Find();
 
