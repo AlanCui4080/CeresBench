@@ -1,16 +1,12 @@
-﻿using CeresBench.ViewModels;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Ivi.Visa;
 using NationalInstruments.Visa;
+using Keysight.Visa;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Resources;
-using System.Text;
 using System.Threading.Tasks;
-using static CeresBench.ViewModels.MainViewModel;
-using static System.Collections.Specialized.BitVector32;
 
 namespace CeresBench.Models;
 
@@ -34,11 +30,13 @@ public partial class VISAResourceManagerModel
         private string _firmware = "";
         [ObservableProperty]
         private string _present = "";
+        [ObservableProperty]
+        private string _visaLibrary = "";
     }
 
-    private NationalInstruments.Visa.ResourceManager GlobalResourceManager = new();
+    //private NationalInstruments.Visa.ResourceManager GlobalResourceManager = new();
 
-    public string VisaManufacture => GlobalResourceManager.ManufacturerName;
+    public string VisaManufacture => "Unknown";
     public Version VisaLibraryVersion => GlobalResourceManager.ImplementationVersion;
     public Version VisaSpecificationVersion => GlobalResourceManager.SpecificationVersion;
 
@@ -49,8 +47,7 @@ public partial class VISAResourceManagerModel
         var visaAddressItem = visaAddressItemCollection[visaAddressItemIndex];
         try
         {
-            var session = GlobalResourceManager.Open(visaAddressItem.VisaResourceName, AccessModes.None, 2000) as MessageBasedSession;
-
+            IMessageBasedSession? session = GlobalResourceManager.Open(visaAddressItem.VisaResourceName, AccessModes.None, 2000) as IMessageBasedSession;
             if (session != null)
             {
                 string idnResponse = ",,,,";
@@ -77,26 +74,25 @@ public partial class VISAResourceManagerModel
                     }
                     else
                     {
+                        visaAddressItem.Present = "No: Not a Valid SCPI Response";
                         visaAddressItem.FriendlyName = "Unknown";
-                        visaAddressItem.Present = "Not support SCPI";
-
                     }
 
-                    visaAddressItem.VisaResourceName = visaAddressItem.VisaResourceName;
-                    visaAddressItem.Interface = session.HardwareInterfaceName;
-
                 }
-                catch (IOTimeoutException)
+                catch (Exception ex)
                 {
-                    visaAddressItem.Present = "No: Timed Out";
+                    visaAddressItem.Present = $"No: {ex.Message}";
                     visaAddressItem.FriendlyName = "No Response";
                 }
 
+                visaAddressItem.VisaResourceName = visaAddressItem.VisaResourceName;
+                visaAddressItem.VisaLibrary = session.ResourceManufacturerName;
+                visaAddressItem.Interface = session.HardwareInterfaceType.ToString().ToUpper();
             }
         }
-        catch (NativeVisaException)
+        catch (Exception ex)
         {
-            visaAddressItem.Present = "No: Resource not Presented Yet";
+            visaAddressItem.Present = $"No: {ex.Message}";
             visaAddressItem.FriendlyName = "Not Presented";
         }
 
@@ -105,10 +101,14 @@ public partial class VISAResourceManagerModel
 
     public VISAResourceManagerModel()
     {
+
         List<string> resources;
         try
         {
-            resources = GlobalResourceManager.Find("?*").ToList();
+            resources = GlobalResourceManager
+                .Find("?*")
+                .Where(v => v.Contains("::INSTR"))
+                .ToList();
         }
         catch (NativeVisaException ex)
         {
@@ -132,7 +132,8 @@ public partial class VISAResourceManagerModel
                 Model = "",
                 SerialNumber = "",
                 Firmware = "",
-                Present = ""
+                Present = "",
+                VisaLibrary = "",
             };
             VisaResourceList.Add(visaAddressItem);
             var index = VisaResourceList.Count - 1;
