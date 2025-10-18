@@ -1,36 +1,38 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CeresBench.Models;
+using CommunityToolkit.Mvvm.ComponentModel;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
-using CeresBench.Models;
+using static CeresBench.Models.VISAResourceManagerModel;
 
 namespace CeresBench.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-    public class VisaAddressItem
-    {
-        public string FriendlyName { get; set; }
-
-        public string VisaResourceName { get; set; }
-
-        public VisaAddressItem(string visaResoucreName, string friendlyName = "Unknown")
-        {
-            FriendlyName = friendlyName;
-            VisaResourceName = visaResoucreName;
-        }
-    }
-
     public string Greeting => "Welcome to Avalonia!";
 
     private VISAResourceManagerModel _visaResourceManagerModel = new();
 
+    
+    [ObservableProperty]
+    private bool _isVisaResouceComboDropDownOpen = false;
+
+    [ObservableProperty]
+    private int _visaResourceSelectedIndex = -1;
+
+    public ObservableCollection<VISAResourceManagerModel.VisaResourceItem> VisaResourceList => _visaResourceManagerModel.VisaResourceList;
+
+    [ObservableProperty]
+    public VISAResourceManagerModel.VisaResourceItem _currentlySelectedResource = new();
+    partial void OnVisaResourceSelectedIndexChanged(int value)
+    {
+        CurrentlySelectedResource = _visaResourceManagerModel.VisaResourceList[value == -1 ? 0 : value];
+    }
+
     public string CurrentlyUsedVISALibrary => _visaResourceManagerModel.VisaManufacture;
     public string CurrentlyUsedVISAVersion => _visaResourceManagerModel.VisaLibraryVersion.ToString();
     public string CurrentlyUsedVISASpecification => _visaResourceManagerModel.VisaSpecificationVersion.ToString();
-
-    [ObservableProperty]
-    private int _visaResouceSelectedIndex;
-
-    public List<VisaAddressItem> VisaResourceList => _visaResourceManagerModel.Find();
 
 }

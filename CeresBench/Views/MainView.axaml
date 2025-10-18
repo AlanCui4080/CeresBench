@@ -16,54 +16,57 @@
 		  <StackPanel Margin="10,5,10,10">
 
 			  <TextBlock Margin="0,0,0,10" HorizontalAlignment="Left" FontSize="20" Text="Instrument" />
-			  <ComboBox ItemsSource="{Binding VisaResourceList}" Margin="0,0,0,5" SelectedIndex="{Binding VisaResouceSelectedIndex}">
+			  <ComboBox ItemsSource="{Binding VisaResourceList}" Margin="0,0,0,5" 
+                        SelectedIndex="{Binding VisaResourceSelectedIndex}"
+                        IsDropDownOpen="{Binding IsVisaResouceComboDropDownOpen}">
 				  <ComboBox.ItemTemplate>
                       <DataTemplate>
                         <StackPanel Orientation="Horizontal">
 							<TextBlock VerticalAlignment="Center" Text="{Binding FriendlyName}" FontSize="16" Margin="0,0,10,0"/>
-                            <TextBlock VerticalAlignment="Center" Text="{Binding VisaResourceName}" TextTrimming="CharacterEllipsis" FontSize="12"/>
+                            <TextBlock VerticalAlignment="Center" Text="{Binding VisaResourceName}" 
+                                       TextTrimming="CharacterEllipsis" FontSize="12"/>
                         </StackPanel>
                       </DataTemplate>
                   </ComboBox.ItemTemplate>
               </ComboBox>
               <StackPanel>
-			      <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
-                      <TextBlock Grid.Column="0" Text="Status:" FontSize="16"/>
-                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="Presented" />
+			      <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+                      <TextBlock Grid.Column="0" Text="Present:" FontSize="16"/>
+                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis" Text="{Binding CurrentlySelectedResource.Present}" />
                   </Grid>
-                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                  <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
                       <TextBlock Grid.Column="0" Text="Interface:" FontSize="16"/>
-                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="TCPIP0" />
+                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis" Text="{Binding CurrentlySelectedResource.Interface}" />
                   </Grid>
-                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                  <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
                       <TextBlock Grid.Column="0" Text="Vendor:" FontSize="16"/>
-                      <TextBlock Grid.Column="2"  VerticalAlignment="Bottom" Text="HEWLETT-PACKARD" />
+                      <TextBlock Grid.Column="2"  VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis" Text="{Binding CurrentlySelectedResource.Vendor}" />
                   </Grid>
-                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                  <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
                       <TextBlock Grid.Column="0" Text="Model:" FontSize="16"/>
-                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="34401A" />
+                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis" Text="{Binding CurrentlySelectedResource.Model}" />
                   </Grid>
-                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                  <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
                       <TextBlock Grid.Column="0" Text="Serial Number:" FontSize="16"/>
-                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="0" />
+                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis" Text="{Binding CurrentlySelectedResource.SerialNumber}" />
                   </Grid>
-                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                  <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
                       <TextBlock Grid.Column="0" Text="Firmware:" FontSize="16"/>
-                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="11-5-3" />
+                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis" Text="{Binding CurrentlySelectedResource.Firmware}" />
                   </Grid>
               </StackPanel>
 
 			  <TextBlock Margin="0,10,0,5" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="20" Text="VISA" />
               <StackPanel>
-				 <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+				 <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
                      <TextBlock Grid.Column="0" Text="Library:" FontSize="16"/>
                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISALibrary}" />
                  </Grid>
-                 <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                 <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
                      <TextBlock Grid.Column="0" Text="Version:" FontSize="16"/>
                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISAVersion}" />
                  </Grid>
-                  <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,5,0,0">
+                  <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
                      <TextBlock Grid.Column="0" Text="Sepcification:" FontSize="16"/>
                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISASpecification}" />
                  </Grid>
