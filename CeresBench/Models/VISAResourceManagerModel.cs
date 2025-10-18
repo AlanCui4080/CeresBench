@@ -42,12 +42,13 @@ public partial class VISAResourceManagerModel
 
     public ObservableCollection<VisaResourceItem> VisaResourceList = new();
 
-    private void GetResourceIdentString(int visaAddressItemIndex, ObservableCollection<VisaResourceItem> visaAddressItemCollection)
+    public VisaResourceItem GetVisaResourceItemByName(string visaResourceName)
     {
-        var visaAddressItem = visaAddressItemCollection[visaAddressItemIndex];
+        VisaResourceItem visaResourceItem = new();
+        visaResourceItem.VisaResourceName = visaResourceName;
         try
         {
-            IMessageBasedSession? session = GlobalResourceManager.Open(visaAddressItem.VisaResourceName, AccessModes.None, 2000) as IMessageBasedSession;
+            IMessageBasedSession? session = GlobalResourceManager.Open(visaResourceName, AccessModes.None, 2000) as IMessageBasedSession;
             if (session != null)
             {
                 string idnResponse = ",,,,";
@@ -65,38 +66,40 @@ public partial class VISAResourceManagerModel
                         var _serialNumberString = idnParts[2].TrimStart();
                         var _firmware = idnParts[3].TrimStart();
                         var _friendlyName = $"{idnParts[0].TrimStart()} {idnParts[1].TrimStart()}";
-                        visaAddressItem.Vendor = _vendorName;
-                        visaAddressItem.Model = _modelName;
-                        visaAddressItem.SerialNumber = _serialNumberString;
-                        visaAddressItem.Firmware = _firmware;
-                        visaAddressItem.FriendlyName = _friendlyName;
-                        visaAddressItem.Present = "Yes";
+                        visaResourceItem.Vendor = _vendorName;
+                        visaResourceItem.Model = _modelName;
+                        visaResourceItem.SerialNumber = _serialNumberString;
+                        visaResourceItem.Firmware = _firmware;
+                        visaResourceItem.FriendlyName = _friendlyName;
+                        visaResourceItem.Present = "Yes";
                     }
                     else
                     {
-                        visaAddressItem.Present = "No: Not a Valid SCPI Response";
-                        visaAddressItem.FriendlyName = "Unknown";
+                        visaResourceItem.Present = "No: Not a Valid SCPI Response";
+                        visaResourceItem.FriendlyName = "Unknown";
                     }
-
                 }
                 catch (Exception ex)
                 {
-                    visaAddressItem.Present = $"No: {ex.Message}";
-                    visaAddressItem.FriendlyName = "No Response";
+                    visaResourceItem.Present = $"No: {ex.Message}";
+                    visaResourceItem.FriendlyName = "No Response";
                 }
 
-                visaAddressItem.VisaResourceName = visaAddressItem.VisaResourceName;
-                visaAddressItem.VisaLibrary = session.ResourceManufacturerName;
-                visaAddressItem.Interface = session.HardwareInterfaceType.ToString().ToUpper();
+                visaResourceItem.VisaLibrary = session.ResourceManufacturerName;
+                visaResourceItem.Interface = session.HardwareInterfaceType.ToString().ToUpper();
             }
         }
         catch (Exception ex)
         {
-            visaAddressItem.Present = $"No: {ex.Message}";
-            visaAddressItem.FriendlyName = "Not Presented";
+            visaResourceItem.Present = $"No: {ex.Message}";
+            visaResourceItem.FriendlyName = "Not Presented";
         }
+        return visaResourceItem;
+    }
 
-        System.Diagnostics.Debug.WriteLine($"[VISAResourceManagerModel] Completed fetching {visaAddressItemIndex} IDN for {visaAddressItem.VisaResourceName}: \"{visaAddressItem.FriendlyName}\"");
+    public IMessageBasedSession? Connect(VisaResourceItem visaResourceItem, AccessModes mode, int timeout)
+    {
+        return GlobalResourceManager.Open(visaResourceItem.VisaResourceName, mode, timeout) as IMessageBasedSession;
     }
 
     public VISAResourceManagerModel()
@@ -137,7 +140,7 @@ public partial class VISAResourceManagerModel
             };
             VisaResourceList.Add(visaAddressItem);
             var index = VisaResourceList.Count - 1;
-            Task.Run(() => { GetResourceIdentString(index, VisaResourceList); });
+            Task.Run(() => { VisaResourceList[index] = GetVisaResourceItemByName(VisaResourceList[index].VisaResourceName); });
         }
     }
 }

@@ -1,78 +1,172 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:CeresBench.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="CeresBench.Views.MainView"
-             x:DataType="vm:MainViewModel">
-  <Design.DataContext>
-    <!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-    <vm:MainViewModel />
-  </Design.DataContext>
-  <SplitView IsPaneOpen="True" PanePlacement="Right" DisplayMode="Inline">
-	  <SplitView.Pane>
-		  <StackPanel Margin="10,5,10,10">
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="clr-namespace:CeresBench.ViewModels"
+			 xmlns:appviews="clr-namespace:CeresBench.Views.ApplicationViews"
+			 xmlns:icon="using:FluentIcons.Avalonia"
+			 mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+			 x:Class="CeresBench.Views.MainView"
+			 x:DataType="vm:MainViewModel">
+	<Design.DataContext>
+		<!-- This only sets the DataContext for the previewer in an IDE,
+		to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
+		<vm:MainViewModel />
+	</Design.DataContext>
+	<SplitView IsPaneOpen="True" PanePlacement="Left" DisplayMode="CompactInline" OpenPaneLength="350">
+		<SplitView.Pane>
+			<StackPanel Margin="10,10,10,10">
+				<TextBlock Margin="0,0,0,10" HorizontalAlignment="Left" FontSize="20" Text="Instrument" />
 
-			  <TextBlock Margin="0,0,0,10" HorizontalAlignment="Left" FontSize="20" Text="Instrument" />
-			  <ComboBox ItemsSource="{Binding VisaResourceList}" Margin="0,0,0,5" 
-                        SelectedIndex="{Binding VisaResourceSelectedIndex}"
-                        IsDropDownOpen="{Binding IsVisaResouceComboDropDownOpen}">
-				  <ComboBox.ItemTemplate>
-                      <DataTemplate>
-                        <StackPanel Orientation="Horizontal">
-							<TextBlock VerticalAlignment="Center" Text="{Binding FriendlyName}" FontSize="16" Margin="0,0,10,0"/>
-                            <TextBlock VerticalAlignment="Center" Text="{Binding VisaResourceName}" 
-                                       TextTrimming="CharacterEllipsis" FontSize="12"/>
-                        </StackPanel>
-                      </DataTemplate>
-                  </ComboBox.ItemTemplate>
-              </ComboBox>
-              <StackPanel>
-			      <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
-                      <TextBlock Grid.Column="0" Text="Present:" FontSize="16"/>
-                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis" Text="{Binding CurrentlySelectedResource.Present}" />
-                  </Grid>
-                  <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
-                      <TextBlock Grid.Column="0" Text="Interface:" FontSize="16"/>
-                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis" Text="{Binding CurrentlySelectedResource.Interface}" />
-                  </Grid>
-                  <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
-                      <TextBlock Grid.Column="0" Text="Vendor:" FontSize="16"/>
-                      <TextBlock Grid.Column="2"  VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis" Text="{Binding CurrentlySelectedResource.Vendor}" />
-                  </Grid>
-                  <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
-                      <TextBlock Grid.Column="0" Text="Model:" FontSize="16"/>
-                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis" Text="{Binding CurrentlySelectedResource.Model}" />
-                  </Grid>
-                  <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
-                      <TextBlock Grid.Column="0" Text="Serial Number:" FontSize="16"/>
-                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis" Text="{Binding CurrentlySelectedResource.SerialNumber}" />
-                  </Grid>
-                  <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
-                      <TextBlock Grid.Column="0" Text="Firmware:" FontSize="16"/>
-                      <TextBlock Grid.Column="2" VerticalAlignment="Bottom" TextTrimming="CharacterEllipsis" Text="{Binding CurrentlySelectedResource.Firmware}" />
-                  </Grid>
-              </StackPanel>
+				<Grid ColumnDefinitions="Auto,*">
+					<ToggleButton VerticalAlignment="Center" Grid.Column="0"
+								  Margin="0,0,5,0" Height="35"
+								  IsChecked="{Binding IsCustomVisaResourceName}"
+								  IsEnabled="{Binding !IsConnectedToResource}">
+						<icon:FluentIcon VerticalAlignment="Center" Icon="Edit" IconVariant="Regular" />
+					</ToggleButton>
+					<ComboBox ItemsSource="{Binding VisaResourceList}" Grid.Column="1" Height="35"
+							  SelectedIndex="{Binding VisaResourceSelectedIndex}"
+							  IsDropDownOpen="{Binding IsVisaResouceComboDropDownOpen}"
+							  IsVisible="{Binding !IsCustomVisaResourceName}"
+							  IsEnabled="{Binding !IsConnectedToResource}"
+							  VerticalAlignment="Center" HorizontalAlignment="Stretch">
+						<ComboBox.ItemTemplate>
+							<DataTemplate>
+								<StackPanel Orientation="Horizontal">
+									<TextBlock VerticalAlignment="Center" Text="{Binding FriendlyName}" FontSize="16" Margin="0,0,10,0"/>
+									<TextBlock VerticalAlignment="Center" Text="{Binding VisaResourceName}"
+											   TextTrimming="CharacterEllipsis" FontSize="12"/>
+								</StackPanel>
+							</DataTemplate>
+						</ComboBox.ItemTemplate>
+					</ComboBox>
+					<TextBox  Grid.Column="1" Height="35"
+							  Text="{Binding VisaCustomResourceName}"
+							  IsVisible="{Binding IsCustomVisaResourceName}"
+							  IsEnabled="{Binding !IsConnectedToResource}"
+							  Watermark="GPIB0::1::INSTR ... etc." KeyDown="CustonVisaResourceNameTextBox_KeyDown"
+							  VerticalAlignment="Center" HorizontalAlignment="Stretch">
+					</TextBox>
 
-			  <TextBlock Margin="0,10,0,5" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="20" Text="VISA" />
-              <StackPanel>
-				 <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
-                     <TextBlock Grid.Column="0" Text="Library:" FontSize="16"/>
-                     <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISALibrary}" />
-                 </Grid>
-                 <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
-                     <TextBlock Grid.Column="0" Text="Version:" FontSize="16"/>
-                     <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISAVersion}" />
-                 </Grid>
-                  <Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
-                     <TextBlock Grid.Column="0" Text="Sepcification:" FontSize="16"/>
-                     <TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISASpecification}" />
-                 </Grid>
-              </StackPanel>
-          </StackPanel>
-      </SplitView.Pane>
-		  <TextBlock>Y</TextBlock>
-  </SplitView>
+				</Grid>
+				<StackPanel>
+					<Grid ColumnDefinitions="3*,40,2*" >
+						<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Lock:" FontSize="16"/>
+						<ToggleSwitch Grid.Column="2" VerticalAlignment="Center" IsChecked="{Binding IsVisaExclusiveAccess}"
+									  OffContent="Shared" OnContent="Exclusive" IsEnabled="{Binding !IsConnectedToResource}"/>
+					</Grid>
+					<Grid ColumnDefinitions="3*,40,2*" >
+						<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Assert REN:" FontSize="16"/>
+						<ToggleSwitch Grid.Column="2" VerticalAlignment="Center" IsChecked="{Binding IsVisaAssertREN}"
+									  OffContent="No" OnContent="Yes" IsEnabled="{Binding !IsConnectedToResource}"/>
+					</Grid>
+					<Grid ColumnDefinitions="3*,40,2*" >
+						<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Timeout (ms):" FontSize="16"/>
+						<TextBox Grid.Column="2" Text="{Binding VisaTimeout}" IsEnabled="{Binding !IsConnectedToResource}"/>
+					</Grid>
+					<Grid ColumnDefinitions="3*,40,2*"  Margin="0,5,0,0" >
+						<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Termination Character:" FontSize="16"/>
+						<ComboBox Grid.Column="2" ItemsSource="{Binding TerminationCharList}"
+								  SelectedIndex="{Binding TerminationCharListSelectedIndex}"
+								  IsEnabled="{Binding !IsConnectedToResource}"/>
+					</Grid>
+				</StackPanel>
+
+				<ToggleButton HorizontalAlignment="Stretch" Margin="0,10,0,0" IsChecked="{Binding IsConnectedToResource}">
+					<Grid>
+						<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="{Binding !IsConnectedToResource}">
+							<icon:FluentIcon VerticalAlignment="Center" Icon="PlugConnected" IconVariant="Regular" />
+							<TextBlock Margin="5,0,0,0" Text="Connect" />
+						</StackPanel>
+						<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="{Binding IsConnectedToResource}">
+							<icon:FluentIcon VerticalAlignment="Center" Icon="PlugDisconnected" IconVariant="Regular" />
+							<TextBlock Margin="5,0,0,0" Text="Disconnect" />
+						</StackPanel>
+					</Grid>
+				</ToggleButton>
+
+				<StackPanel>
+					<StackPanel.Styles>
+						<Style Selector="TextBlock">
+							<Setter Property="FontSize"  Value="14" />
+							<Setter Property="TextTrimming"  Value="CharacterEllipsis" />
+					</Style>
+					</StackPanel.Styles>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Present:" />
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom"
+								   Text="{Binding CurrentlySelectedResource.Present}"
+								   ToolTip.Tip="{Binding CurrentlySelectedResource.Present}"/>
+					</Grid>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Interface:" />
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlySelectedResource.Interface}" />
+					</Grid>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Vendor:" />
+						<TextBlock Grid.Column="2"  VerticalAlignment="Bottom" Text="{Binding CurrentlySelectedResource.Vendor}" />
+					</Grid>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Model:" />
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlySelectedResource.Model}" />
+					</Grid>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Serial:" />
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlySelectedResource.SerialNumber}" />
+					</Grid>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Firmware:" />
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlySelectedResource.Firmware}" />
+					</Grid>
+				</StackPanel>
+
+				<TextBlock Margin="0,10,0,5" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="20" Text="VISA" />
+				<StackPanel>
+					<StackPanel.Styles>
+						<Style Selector="TextBlock">
+							<Setter Property="FontSize"  Value="14" />
+							<Setter Property="TextTrimming"  Value="CharacterEllipsis" />
+					</Style>
+					</StackPanel.Styles>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Library:"/>
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlySelectedResource.VisaLibrary}" />
+					</Grid>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Version:"/>
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISAVersion}" />
+					</Grid>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Sepcification:"/>
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISASpecification}" />
+					</Grid>
+				</StackPanel>
+
+				<TextBlock Margin="0,10,0,5" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="20" Text="Interface" />
+				<StackPanel>
+					<StackPanel.Styles>
+						<Style Selector="TextBlock">
+							<Setter Property="FontSize"  Value="14" />
+							<Setter Property="TextTrimming"  Value="CharacterEllipsis" />
+					</Style>
+					</StackPanel.Styles>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Selected:" />
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="CeresGenericDMMView" />
+					</Grid>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Version:" />
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="1.0.2" />
+					</Grid>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Matched-By:" />
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="(Model): 34401A" />
+					</Grid>
+				</StackPanel>
+
+			</StackPanel>
+		</SplitView.Pane>
+		<appviews:CeresGenericDMMView />
+	</SplitView>
 </UserControl>
