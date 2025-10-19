@@ -13,7 +13,7 @@
 		to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
 		<vm:MainViewModel />
 	</Design.DataContext>
-	<SplitView IsPaneOpen="True" PanePlacement="Left" DisplayMode="CompactInline" OpenPaneLength="350">
+	<SplitView IsPaneOpen="True" PanePlacement="Left" DisplayMode="CompactInline" OpenPaneLength="350" Name="rootView">
 		<SplitView.Pane>
 			<StackPanel Margin="10,10,10,10">
 				<TextBlock Margin="0,0,0,10" HorizontalAlignment="Left" FontSize="20" Text="Instrument" />
@@ -183,6 +183,7 @@
 				</StackPanel>
 			</StackPanel>
 		</SplitView.Pane>
-		<appviews:CeresGenericDMMView />
+
+		<ContentControl Content="{Binding ApplicationView}"></ContentControl>
 	</SplitView>
 </UserControl>

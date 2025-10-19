@@ -8,9 +8,11 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Xml;
 using static CeresBench.Models.VISAResourceManagerModel;
 
 namespace CeresBench.ViewModels;
@@ -51,7 +53,7 @@ public partial class MainViewModel : ViewModelBase
     {
         if (IsCustomVisaResourceName)
         {
-            CurrentlySelectedResource = _visaResourceManagerModel.GetVisaResourceItemByName(VisaCustomResourceName);
+            CurrentlySelectedResource = _visaResourceManagerModel.GetVisaResourceItemByNameViaTestConnection(VisaCustomResourceName);
         }
         else
         {
@@ -73,6 +75,8 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isConnectedToResource;
 
+    [ObservableProperty]
+    object? _applicationView;
 
     [RelayCommand]
     private void ConnectToResource()
@@ -103,10 +107,16 @@ public partial class MainViewModel : ViewModelBase
                                                   IsVisaExclusiveAccess ? AccessModes.ExclusiveLock : AccessModes.None,
                                                   VisaTimeout,
                                                   IsVisaAssertREN);
+
+                ApplicationView = GetMatchedView(_visaResourceManagerModel.IdnString ?? "")
+                                 .GetConstructor(System.Array.Empty<System.Type>())
+                                 ?.Invoke(System.Array.Empty<System.Type>());
             }
             else
             {
                 _visaResourceManagerModel.Disconnect();
+
+                ApplicationView = new Views.Application.DefaultView();
             }
         }
         catch (Exception ex)
@@ -125,7 +135,7 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isPopExcetionMessage;
     [ObservableProperty]
-    private string _popExceptionMessage = "123321";
+    private string _popExceptionMessage = "";
     [RelayCommand]
     private void PopExceptionOut(string message)
     {
@@ -136,5 +146,43 @@ public partial class MainViewModel : ViewModelBase
             Thread.Sleep(5000);
             IsPopExcetionMessage = false;
         });
+    }
+
+    private Type GetMatchedView(string idnString)
+    {
+        XmlDocument xmlDocument = new();
+        xmlDocument.Load("./Configs/ModelApplications.xml");
+        var rootElement = xmlDocument.DocumentElement;
+
+        if (rootElement == null)
+        {
+            throw new NotImplementedException();
+        }
+
+        foreach (XmlNode? node in rootElement.ChildNodes)
+        {
+            if (node?.Name == "Application")
+            {
+                foreach (XmlNode? childNode in node.ChildNodes)
+                {
+                    if (childNode?.Name == "MatchRule")
+                    {
+                        if (Regex.IsMatch(idnString, childNode?.InnerText ?? ""))
+                        {
+                            switch (node.Attributes?.GetNamedItem("name")?.Value)
+                            {
+                                case "GenericDMM":
+                                    return typeof(Views.Application.GenericDMMView);
+                                case "GenericCounter":
+                                    return typeof(Views.Application.GenericCounterView);
+                            }
+                        }
+                    }
+                }
+
+            }
+        }
+
+        return typeof(Views.Application.DefaultView);
     }
 }

@@ -1,13 +1,14 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Ivi.Visa;
-using NationalInstruments.Visa;
 using Keysight.Visa;
+using NationalInstruments.Visa;
+using NationalInstruments.Visa.Internal;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using NationalInstruments.Visa.Internal;
+using static System.Collections.Specialized.BitVector32;
 
 namespace CeresBench.Models;
 
@@ -15,6 +16,9 @@ public partial class VISAResourceManagerModel
 {
     public partial class VisaResourceItem : ObservableObject
     {
+        [ObservableProperty]
+        private string _idnString = "";
+
         [ObservableProperty]
         private string _friendlyName = "";
         [ObservableProperty]
@@ -41,6 +45,17 @@ public partial class VISAResourceManagerModel
 
     private IMessageBasedSession? _connectedSession;
 
+    public IMessageBasedFormattedIO? FormattedIO => _connectedSession?.FormattedIO;
+
+    public string? IdnString
+    {
+        get
+        {
+            _connectedSession?.FormattedIO.WriteLine("*IDN?");
+            return _connectedSession?.FormattedIO.ReadLine() ?? "";
+        }
+    }
+
     public Version VisaLibraryVersion => GlobalResourceManager.ImplementationVersion;
     public Version VisaSpecificationVersion => GlobalResourceManager.SpecificationVersion;
 
@@ -62,7 +77,7 @@ public partial class VISAResourceManagerModel
     public void Connect(string visaResourceName, AccessModes mode, int timeout, bool assertRen)
     {
         _connectedSession = GlobalResourceManager.Open(visaResourceName, mode, timeout) as IMessageBasedSession;
-        if(assertRen)  SetResourceToRemote(_connectedSession);
+        if (assertRen) SetResourceToRemote(_connectedSession);
     }
 
     public void Disconnect()
@@ -71,7 +86,7 @@ public partial class VISAResourceManagerModel
         _connectedSession?.Dispose();
     }
 
-    public VisaResourceItem GetVisaResourceItemByName(string visaResourceName)
+    public VisaResourceItem GetVisaResourceItemByNameViaTestConnection(string visaResourceName)
     {
         VisaResourceItem visaResourceItem = new();
         visaResourceItem.VisaResourceName = visaResourceName;
@@ -86,7 +101,7 @@ public partial class VISAResourceManagerModel
                     session.FormattedIO.WriteLine("*IDN?");
                     idnResponse = session.FormattedIO.ReadLine();
                     var idnParts = idnResponse.Replace("\n", "").Replace("\r", "").Split(',');
-
+                    visaResourceItem.IdnString = idnResponse;
 
                     if (idnParts.Length == 4)
                     {
@@ -171,7 +186,7 @@ public partial class VISAResourceManagerModel
             };
             VisaResourceList.Add(visaAddressItem);
             var index = VisaResourceList.Count - 1;
-            Task.Run(() => { VisaResourceList[index] = GetVisaResourceItemByName(VisaResourceList[index].VisaResourceName); });
+            Task.Run(() => { VisaResourceList[index] = GetVisaResourceItemByNameViaTestConnection(VisaResourceList[index].VisaResourceName); });
         }
     }
 }

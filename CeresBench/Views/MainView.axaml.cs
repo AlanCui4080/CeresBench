@@ -1,5 +1,8 @@
 ﻿using Avalonia.Controls;
 using CeresBench.ViewModels;
+using System;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
 
 namespace CeresBench.Views;
 
@@ -14,9 +17,9 @@ public partial class MainView : UserControl
     {
     }
 
-    private void CustonVisaResourceNameTextBox_KeyDown (object? sender, Avalonia.Input.KeyEventArgs e)
+    private void CustonVisaResourceNameTextBox_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
     {
-        if(e.Key == Avalonia.Input.Key.Enter)
+        if (e.Key == Avalonia.Input.Key.Enter)
         {
             var textBox = sender as TextBox;
 

@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Config>
+  <Application name="GenericDMM">
+    <MatchRule>HEWLETT-PACKARD.*34401A.*</MatchRule>
+    <Initlization>*RST</Initlization>
+    <Initlization>*CLS</Initlization>
+  </Application>
+  <Application name="GenericCounter">
+    <MatchRule>HEWLETT-PACKARD.*531[38][12].*</MatchRule>
+    <Initlization>*RST</Initlization>
+    <Initlization>*CLS</Initlization>
+  </Application>
+</Config>

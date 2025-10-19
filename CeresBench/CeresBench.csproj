@@ -26,4 +26,22 @@
     <PackageReference Include="KeysightTechnologies.Visa" Version="18.6.6" />
     <PackageReference Include="NationalInstruments.Visa" Version="25.5.0.13" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\Application.GenericCounterView.axaml.cs">
+      <DependentUpon>Application.GenericCounterView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\Application.DefaultView.axaml.cs">
+      <DependentUpon>Application.DefaultView.axaml</DependentUpon>
+    </Compile>
+    <Compile Update="Views\Application.GenericDMMView.axaml.cs">
+      <DependentUpon>Application.GenericDMMView.axaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Configs\ModelApplications.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>
