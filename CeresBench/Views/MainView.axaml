@@ -5,7 +5,7 @@
 			 xmlns:vm="clr-namespace:CeresBench.ViewModels"
 			 xmlns:appviews="clr-namespace:CeresBench.Views.ApplicationViews"
 			 xmlns:icon="using:FluentIcons.Avalonia"
-			 mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="768"
+			 mc:Ignorable="d" d:DesignWidth="1366" d:DesignHeight="768"
 			 x:Class="CeresBench.Views.MainView"
 			 x:DataType="vm:MainViewModel">
 	<Design.DataContext>
