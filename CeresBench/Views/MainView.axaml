@@ -54,7 +54,7 @@
 					<Grid ColumnDefinitions="3*,40,2*" >
 						<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Lock:" FontSize="16"/>
 						<ToggleSwitch Grid.Column="2" VerticalAlignment="Center" IsChecked="{Binding IsVisaExclusiveAccess}"
-									  OffContent="Shared" OnContent="Exclusive" IsEnabled="{Binding !IsConnectedToResource}"/>
+									  OffContent="No" OnContent="Exclusive" IsEnabled="{Binding !IsConnectedToResource}"/>
 					</Grid>
 					<Grid ColumnDefinitions="3*,40,2*" >
 						<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Assert REN:" FontSize="16"/>
@@ -73,7 +73,9 @@
 					</Grid>
 				</StackPanel>
 
-				<ToggleButton HorizontalAlignment="Stretch" Margin="0,10,0,0" IsChecked="{Binding IsConnectedToResource}">
+				<ToggleButton HorizontalAlignment="Stretch" Margin="0,10,0,0" 
+				    Command="{Binding ConnectToResourceCommand}"
+					IsChecked="{Binding IsConnectedToResource}">
 					<Grid>
 						<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" IsVisible="{Binding !IsConnectedToResource}">
 							<icon:FluentIcon VerticalAlignment="Center" Icon="PlugConnected" IconVariant="Regular" />
@@ -85,6 +87,13 @@
 						</StackPanel>
 					</Grid>
 				</ToggleButton>
+
+				<TextBlock FontSize="14"
+					TextWrapping="Wrap"
+					HorizontalAlignment="Stretch"
+					Foreground="{DynamicResource SystemErrorTextColor}"
+					Text="{Binding PopExceptionMessage}"
+					IsVisible="{Binding IsPopExcetionMessage}"/>
 
 				<StackPanel>
 					<StackPanel.Styles>
@@ -134,11 +143,19 @@
 						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlySelectedResource.VisaLibrary}" />
 					</Grid>
 					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
-						<TextBlock Grid.Column="0" Text="Version:"/>
+						<TextBlock Grid.Column="0" Text="Implemention:"/>
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlySelectedResource.VisaImplementionVersion}" />
+					</Grid>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="Specification:"/>
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlySelectedResource.VisaSpecificationVersion}" />
+					</Grid>
+					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
+						<TextBlock Grid.Column="0" Text="SystemImpl:"/>
 						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISAVersion}" />
 					</Grid>
 					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
-						<TextBlock Grid.Column="0" Text="Sepcification:"/>
+						<TextBlock Grid.Column="0" Text="SystemSpec:"/>
 						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding CurrentlyUsedVISASpecification}" />
 					</Grid>
 				</StackPanel>
@@ -164,7 +181,6 @@
 						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="(Model): 34401A" />
 					</Grid>
 				</StackPanel>
-
 			</StackPanel>
 		</SplitView.Pane>
 		<appviews:CeresGenericDMMView />

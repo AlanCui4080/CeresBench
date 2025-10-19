@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
+using NationalInstruments.Visa.Internal;
 
 namespace CeresBench.Models;
 
@@ -32,15 +33,43 @@ public partial class VISAResourceManagerModel
         private string _present = "";
         [ObservableProperty]
         private string _visaLibrary = "";
+        [ObservableProperty]
+        private string _visaImplementionVersion = "";
+        [ObservableProperty]
+        private string _visaSpecificationVersion = "";
     }
 
-    //private NationalInstruments.Visa.ResourceManager GlobalResourceManager = new();
+    private IMessageBasedSession? _connectedSession;
 
-    public string VisaManufacture => "Unknown";
     public Version VisaLibraryVersion => GlobalResourceManager.ImplementationVersion;
     public Version VisaSpecificationVersion => GlobalResourceManager.SpecificationVersion;
 
     public ObservableCollection<VisaResourceItem> VisaResourceList = new();
+    public void SetResourceToLocal(IVisaSession? session)
+    {
+        (session as IGpibSession)?.SendRemoteLocalCommand(RemoteLocalMode.Local);
+        (session as IUsbSession)?.SendRemoteLocalCommand(RemoteLocalMode.Local);
+        (session as ITcpipSession)?.SendRemoteLocalCommand(RemoteLocalMode.Local);
+    }
+
+    public void SetResourceToRemote(IVisaSession? session)
+    {
+        (session as IGpibSession)?.SendRemoteLocalCommand(RemoteLocalMode.Remote);
+        (session as IUsbSession)?.SendRemoteLocalCommand(RemoteLocalMode.Remote);
+        (session as ITcpipSession)?.SendRemoteLocalCommand(RemoteLocalMode.Remote);
+    }
+
+    public void Connect(string visaResourceName, AccessModes mode, int timeout, bool assertRen)
+    {
+        _connectedSession = GlobalResourceManager.Open(visaResourceName, mode, timeout) as IMessageBasedSession;
+        if(assertRen)  SetResourceToRemote(_connectedSession);
+    }
+
+    public void Disconnect()
+    {
+        SetResourceToLocal(_connectedSession);
+        _connectedSession?.Dispose();
+    }
 
     public VisaResourceItem GetVisaResourceItemByName(string visaResourceName)
     {
@@ -54,8 +83,8 @@ public partial class VISAResourceManagerModel
                 string idnResponse = ",,,,";
                 try
                 {
-                    session.RawIO.Write("*IDN?\n");
-                    idnResponse = session.RawIO.ReadString();
+                    session.FormattedIO.WriteLine("*IDN?");
+                    idnResponse = session.FormattedIO.ReadLine();
                     var idnParts = idnResponse.Replace("\n", "").Replace("\r", "").Split(',');
 
 
@@ -86,7 +115,14 @@ public partial class VISAResourceManagerModel
                 }
 
                 visaResourceItem.VisaLibrary = session.ResourceManufacturerName;
+                visaResourceItem.VisaImplementionVersion = session.ResourceImplementationVersion.ToString();
+                visaResourceItem.VisaSpecificationVersion = session.ResourceSpecificationVersion.ToString();
                 visaResourceItem.Interface = session.HardwareInterfaceType.ToString().ToUpper();
+
+                // avoiding probe cause device into remote
+                SetResourceToLocal(session);
+
+                session.Dispose();
             }
         }
         catch (Exception ex)
@@ -95,11 +131,6 @@ public partial class VISAResourceManagerModel
             visaResourceItem.FriendlyName = "Not Presented";
         }
         return visaResourceItem;
-    }
-
-    public IMessageBasedSession? Connect(VisaResourceItem visaResourceItem, AccessModes mode, int timeout)
-    {
-        return GlobalResourceManager.Open(visaResourceItem.VisaResourceName, mode, timeout) as IMessageBasedSession;
     }
 
     public VISAResourceManagerModel()
