@@ -160,7 +160,7 @@
 					</Grid>
 				</StackPanel>
 
-				<TextBlock Margin="0,10,0,5" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="20" Text="Interface" />
+				<TextBlock Margin="0,10,0,5" HorizontalAlignment="Left" VerticalAlignment="Bottom" FontSize="20" Text="Application" />
 				<StackPanel>
 					<StackPanel.Styles>
 						<Style Selector="TextBlock">
@@ -170,15 +170,15 @@
 					</StackPanel.Styles>
 					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
 						<TextBlock Grid.Column="0" Text="Selected:" />
-						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="CeresGenericDMMView" />
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding ApplicationName}" />
 					</Grid>
 					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
 						<TextBlock Grid.Column="0" Text="Version:" />
-						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="1.0.2" />
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding ApplicationVersion}" />
 					</Grid>
 					<Grid ColumnDefinitions="*,40,2*" Margin="0,5,0,0">
 						<TextBlock Grid.Column="0" Text="Matched-By:" />
-						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="(Model): 34401A" />
+						<TextBlock Grid.Column="2" VerticalAlignment="Bottom" Text="{Binding ApplicationMatchedBy}" />
 					</Grid>
 				</StackPanel>
 			</StackPanel>

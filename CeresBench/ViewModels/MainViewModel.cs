@@ -2,12 +2,8 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Ivi.Visa;
-using NationalInstruments.Visa.Internal;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -77,6 +73,12 @@ public partial class MainViewModel : ViewModelBase
 
     [ObservableProperty]
     object? _applicationView;
+    [ObservableProperty]
+    string _applicationName = "";
+    [ObservableProperty]
+    string _applicationVersion = "";
+    [ObservableProperty]
+    string _applicationMatchedBy = "";
 
     [RelayCommand]
     private void ConnectToResource()
@@ -111,12 +113,18 @@ public partial class MainViewModel : ViewModelBase
                 ApplicationView = GetMatchedView(_visaResourceManagerModel.IdnString ?? "")
                                  .GetConstructor(System.Array.Empty<System.Type>())
                                  ?.Invoke(System.Array.Empty<System.Type>());
+                ApplicationName = ApplicationView?.GetType().Name ?? "";
+                ApplicationVersion = (ApplicationView as Views.Application.IVersionView)?.VersionString ?? "";
+                ApplicationMatchedBy = "Ident String";
             }
             else
             {
                 _visaResourceManagerModel.Disconnect();
 
                 ApplicationView = new Views.Application.DefaultView();
+                ApplicationName = "";
+                ApplicationVersion = "";
+                ApplicationMatchedBy = "";
             }
         }
         catch (Exception ex)
