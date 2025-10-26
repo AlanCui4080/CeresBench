@@ -3,7 +3,12 @@ using Ivi.Visa;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Resources;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CeresBench.Models;
@@ -39,16 +44,15 @@ public partial class VISAResourceManagerModel
         private string _visaSpecificationVersion = "";
     }
 
-    private IMessageBasedSession? _connectedSession;
-
-    public IMessageBasedFormattedIO? FormattedIO => _connectedSession?.FormattedIO;
+    public IMessageBasedSession? ConnectedSession;
+    private CancellationTokenSource probeTaskCancellation = new();
 
     public string? IdnString
     {
         get
         {
-            _connectedSession?.FormattedIO.WriteLine("*IDN?");
-            return _connectedSession?.FormattedIO.ReadLine() ?? "";
+            ConnectedSession?.FormattedIO.WriteLine("*IDN?");
+            return ConnectedSession?.FormattedIO.ReadLine() ?? "";
         }
     }
 
@@ -72,15 +76,19 @@ public partial class VISAResourceManagerModel
 
     public void Connect(string visaResourceName, AccessModes mode, int timeout, bool assertRen)
     {
-        _connectedSession = GlobalResourceManager.Open(visaResourceName, mode, timeout) as IMessageBasedSession;
-        _connectedSession.TimeoutMilliseconds = 2000;
-        if (assertRen) SetResourceToRemote(_connectedSession);
+
+        ConnectedSession = GlobalResourceManager.Open(visaResourceName, mode, timeout) as IMessageBasedSession;
+        if (ConnectedSession != null)
+        {
+            ConnectedSession.TimeoutMilliseconds = 2000;
+            if (assertRen) SetResourceToRemote(ConnectedSession);
+        }
     }
 
     public void Disconnect()
     {
-        SetResourceToLocal(_connectedSession);
-        _connectedSession?.Dispose();
+        SetResourceToLocal(ConnectedSession);
+        ConnectedSession?.Dispose();
     }
 
     public VisaResourceItem GetVisaResourceItemByNameViaTestConnection(string visaResourceName)
@@ -89,17 +97,16 @@ public partial class VISAResourceManagerModel
         visaResourceItem.VisaResourceName = visaResourceName;
         try
         {
-            IMessageBasedSession? session = GlobalResourceManager.Open(visaResourceName, AccessModes.None, 0) as IMessageBasedSession;
+            IMessageBasedSession? session = GlobalResourceManager.Open(visaResourceName, AccessModes.None, 1000) as IMessageBasedSession;
             if (session != null)
             {
-                session.TimeoutMilliseconds = 0;
                 string idnResponse = ",,,,";
                 try
                 {
                     session.FormattedIO.WriteLine("*IDN?");
                     idnResponse = session.FormattedIO.ReadLine();
                     var idnParts = idnResponse.Replace("\n", "").Replace("\r", "").Split(',');
-                    visaResourceItem.IdnString = idnResponse;
+                    visaResourceItem.IdnString = idnResponse.Replace('\0', ' ');
 
                     if (idnParts.Length == 4)
                     {
@@ -146,9 +153,51 @@ public partial class VISAResourceManagerModel
         return visaResourceItem;
     }
 
+    private const string CacheDirectory = ".cache";
+    
+    private void EnsureCacheDirectory()
+    {
+        if (!Directory.Exists(CacheDirectory))
+        {
+            Directory.CreateDirectory(CacheDirectory);
+        }
+    }
+
+    private string GetCacheFilePath(string visaResourceName)
+    {
+        return Path.Combine(CacheDirectory, $"{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(visaResourceName))}.cache");
+    }
+
+    private VisaResourceItem? LoadFromCache(string visaResourceName)
+    {
+        var path = GetCacheFilePath(visaResourceName);
+        if (File.Exists(path))
+        {
+            try
+            {
+                var serializer = new System.Xml.Serialization.XmlSerializer(typeof(VisaResourceItem));
+                using var stream = File.OpenRead(path);
+                return serializer.Deserialize(stream) as VisaResourceItem;
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    private void SaveToCache(VisaResourceItem item)
+    {
+        var path = GetCacheFilePath(item.VisaResourceName);
+        var serializer = new System.Xml.Serialization.XmlSerializer(typeof(VisaResourceItem));
+        using var stream = File.Create(path);
+        serializer.Serialize(stream, item);
+    }
+
     public VISAResourceManagerModel()
     {
-
+        EnsureCacheDirectory();
         List<string> resources;
         try
         {
@@ -167,24 +216,33 @@ public partial class VISAResourceManagerModel
                     throw;
             }
         }
-
+        
         foreach (var v in resources)
         {
-            var visaAddressItem = new VisaResourceItem
+            var cachedItem = LoadFromCache(v);
+            var item = new VisaResourceItem 
             {
-                FriendlyName = "Waiting for Response",
                 VisaResourceName = v,
-                Interface = "",
-                Vendor = "",
-                Model = "",
-                SerialNumber = "",
-                Firmware = "",
-                Present = "",
-                VisaLibrary = "",
+                FriendlyName = cachedItem?.FriendlyName ?? "Waiting for response"
             };
-            VisaResourceList.Add(visaAddressItem);
-            var index = VisaResourceList.Count - 1;
-            Task.Run(() => { VisaResourceList[index] = GetVisaResourceItemByNameViaTestConnection(VisaResourceList[index].VisaResourceName); });
+            if (cachedItem != null)
+            {
+                item = cachedItem;
+                item.Present = "From Cache";
+            }
+            VisaResourceList.Add(item);
+        }
+        
+        for (int i = 0; i < VisaResourceList.Count; i++)
+        {
+            var idx = i;
+            Task.Run(() => {
+                Debug.WriteLine($"[VISAResourceManagerModel] started probe for {VisaResourceList[idx].VisaResourceName}");
+                var probeResult = GetVisaResourceItemByNameViaTestConnection(VisaResourceList[idx].VisaResourceName);
+                VisaResourceList[idx] = probeResult;
+                SaveToCache(probeResult);
+                Debug.WriteLine($"[VISAResourceManagerModel] completed probe for {VisaResourceList[idx].VisaResourceName}");
+            });
         }
     }
 }
