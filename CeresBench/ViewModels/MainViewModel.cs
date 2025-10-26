@@ -7,7 +7,6 @@ using System.Collections.ObjectModel;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Input;
 using System.Xml;
 using static CeresBench.Models.VISAResourceManagerModel;
 
@@ -35,14 +34,14 @@ public partial class MainViewModel : ViewModelBase
     private bool _isVisaResouceComboDropDownOpen = false;
     [ObservableProperty]
     private int _visaResourceSelectedIndex = -1;
-    public ObservableCollection<VisaResourceItem> VisaResourceList => _visaResourceManagerModel.VisaResourceList;
-    [ObservableProperty]
-    [NotifyPropertyChangedFor(nameof(VisaResourceList))]
-    public VisaResourceItem _currentlySelectedResource = new();
     partial void OnVisaResourceSelectedIndexChanged(int value)
     {
         CurrentlySelectedResource = _visaResourceManagerModel.VisaResourceList[value == -1 ? 0 : value];
     }
+    public ObservableCollection<VisaResourceItem> VisaResourceList => _visaResourceManagerModel.VisaResourceList;
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(VisaResourceList))]
+    public VisaResourceItem _currentlySelectedResource = new();
     [ObservableProperty]
     private bool _isCustomVisaResourceName = false;
     partial void OnIsCustomVisaResourceNameChanged(bool value)
@@ -72,7 +71,7 @@ public partial class MainViewModel : ViewModelBase
     private bool _isConnectedToResource;
 
     [ObservableProperty]
-    object? _applicationView;
+    ViewModelBase? _applicationView;
     [ObservableProperty]
     string _applicationName = "";
     [ObservableProperty]
@@ -107,21 +106,25 @@ public partial class MainViewModel : ViewModelBase
                 }
                 _visaResourceManagerModel.Connect(toConnectedResourceName,
                                                   IsVisaExclusiveAccess ? AccessModes.ExclusiveLock : AccessModes.None,
-                                                  VisaTimeout,
+                                                  0,
                                                   IsVisaAssertREN);
-
-                ApplicationView = GetMatchedView(_visaResourceManagerModel.IdnString ?? "")
-                                 .GetConstructor(System.Array.Empty<System.Type>())
-                                 ?.Invoke(System.Array.Empty<System.Type>());
+                ApplicationView = GetMatchedViewModel(_visaResourceManagerModel.IdnString ?? "")
+                                 .GetConstructor(Array.Empty<Type>())
+                                 ?.Invoke(Array.Empty<Type>()) as ViewModelBase;
+                var model = ApplicationView as ViewModels.Application.GenericDMMViewModel;
+                if (model != null)
+                {
+                    model.ResourceManagerModel = _visaResourceManagerModel;
+                }
                 ApplicationName = ApplicationView?.GetType().Name ?? "";
-                ApplicationVersion = (ApplicationView as Views.Application.IVersionView)?.VersionString ?? "";
+                ApplicationVersion = "";
                 ApplicationMatchedBy = "Ident String";
             }
             else
             {
                 _visaResourceManagerModel.Disconnect();
 
-                ApplicationView = new Views.Application.DefaultView();
+                ApplicationView = new ViewModels.Application.DefaultViewModel();
                 ApplicationName = "";
                 ApplicationVersion = "";
                 ApplicationMatchedBy = "";
@@ -156,7 +159,7 @@ public partial class MainViewModel : ViewModelBase
         });
     }
 
-    private Type GetMatchedView(string idnString)
+    private Type GetMatchedViewModel(string idnString)
     {
         XmlDocument xmlDocument = new();
         xmlDocument.Load("./Configs/ModelApplications.xml");
@@ -180,9 +183,9 @@ public partial class MainViewModel : ViewModelBase
                             switch (node.Attributes?.GetNamedItem("name")?.Value)
                             {
                                 case "GenericDMM":
-                                    return typeof(Views.Application.GenericDMMView);
+                                    return typeof(ViewModels.Application.GenericDMMViewModel);
                                 case "GenericCounter":
-                                    return typeof(Views.Application.GenericCounterView);
+                                    return typeof(ViewModels.Application.GenericCounterViewModel);
                             }
                         }
                     }
@@ -191,6 +194,6 @@ public partial class MainViewModel : ViewModelBase
             }
         }
 
-        return typeof(Views.Application.DefaultView);
+        return typeof(ViewModels.Application.DefaultViewModel);
     }
 }

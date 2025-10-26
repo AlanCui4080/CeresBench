@@ -6,6 +6,8 @@
   </PropertyGroup>
   <PropertyGroup Label="Avalonia">
     <AvaloniaUseCompiledBindingsByDefault>True</AvaloniaUseCompiledBindingsByDefault>
+    <EnableAvaloniaXamlCompilation>True</EnableAvaloniaXamlCompilation>
+    <AvaloniaXamlReportImportance>Normal</AvaloniaXamlReportImportance>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,14 +1,10 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Ivi.Visa;
-using Keysight.Visa;
-using NationalInstruments.Visa;
-using NationalInstruments.Visa.Internal;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
-using static System.Collections.Specialized.BitVector32;
 
 namespace CeresBench.Models;
 
@@ -77,6 +73,7 @@ public partial class VISAResourceManagerModel
     public void Connect(string visaResourceName, AccessModes mode, int timeout, bool assertRen)
     {
         _connectedSession = GlobalResourceManager.Open(visaResourceName, mode, timeout) as IMessageBasedSession;
+        _connectedSession.TimeoutMilliseconds = 2000;
         if (assertRen) SetResourceToRemote(_connectedSession);
     }
 
@@ -92,9 +89,10 @@ public partial class VISAResourceManagerModel
         visaResourceItem.VisaResourceName = visaResourceName;
         try
         {
-            IMessageBasedSession? session = GlobalResourceManager.Open(visaResourceName, AccessModes.None, 2000) as IMessageBasedSession;
+            IMessageBasedSession? session = GlobalResourceManager.Open(visaResourceName, AccessModes.None, 0) as IMessageBasedSession;
             if (session != null)
             {
+                session.TimeoutMilliseconds = 0;
                 string idnResponse = ",,,,";
                 try
                 {

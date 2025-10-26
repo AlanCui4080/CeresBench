@@ -1,15 +1,55 @@
 <UserControl xmlns="https://github.com/avaloniaui"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:CeresBench.ViewModels"
-             mc:Ignorable="d" d:DesignWidth="1016" d:DesignHeight="768"
-             x:Class="CeresBench.Views.Application.GenericDMMView"
-             x:DataType="vm:MainViewModel">
-  <Design.DataContext>
-    <!-- This only sets the DataContext for the previewer in an IDE,
-         to set the actual DataContext for runtime, set the DataContext property in code (look at App.axaml.cs) -->
-    <vm:MainViewModel />
-  </Design.DataContext>
-  <TextBlock  Text="This is Ceres GenericDMM View" />
+			 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+			 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+			 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 xmlns:vm="clr-namespace:CeresBench.ViewModels.Application"
+			 xmlns:icon="using:FluentIcons.Avalonia"
+			 mc:Ignorable="d" d:DesignWidth="1016" d:DesignHeight="768"
+			 x:Class="CeresBench.Views.Application.GenericDMMView"
+			 x:DataType="vm:GenericDMMViewModel">
+
+	<TabControl>
+		<TabItem Header="Basic">
+			<SplitView IsPaneOpen="True" PanePlacement="Left" DisplayMode="CompactInline" OpenPaneLength="200" PaneBackground="{DynamicResource SystemAltLowColor}">
+				<SplitView.Pane>
+					<StackPanel>
+						<Grid ColumnDefinitions="*,20,2*">
+							<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Mode:" FontSize="16"/>
+							<ComboBox Grid.Column="2" ItemsSource="{Binding MeasurementModeList}"
+									  SelectedIndex="{Binding MeasurementModeSelectedIndex}"
+									  HorizontalAlignment="Stretch">
+								<ComboBox.ItemTemplate>
+									<DataTemplate>
+										<TextBlock Text="{Binding Mode}" />
+									</DataTemplate>
+								</ComboBox.ItemTemplate>
+							</ComboBox>
+						</Grid>
+						<Grid ColumnDefinitions="*,20,2*" Margin="0,5,0,0">
+							<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Range:" FontSize="16"/>
+							<ComboBox ItemsSource="{Binding MeasurementRangeCombo}" Grid.Column="2" Height="35"
+									  SelectedIndex="{Binding MeasurementRangeSelectedIndex}"
+									  IsEnabled="{Binding IsRangeAvailable}"
+									  VerticalAlignment="Center" HorizontalAlignment="Stretch">
+							</ComboBox>
+						</Grid>
+						<Grid ColumnDefinitions="*,20,2*" Margin="0,5,0,0">
+							<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="NPLC:" FontSize="16"/>
+							<ComboBox ItemsSource="{Binding MeasurementNPLCCombo}" Grid.Column="2" Height="35"
+									  SelectedIndex="{Binding MeasurementNPLCSelectedIndex}"
+									  IsEnabled="{Binding IsNPLCAvailable}"
+									  VerticalAlignment="Center" HorizontalAlignment="Stretch">
+							</ComboBox>
+						</Grid>
+					</StackPanel>
+				</SplitView.Pane>
+				<StackPanel Orientation="Horizontal">
+					<TextBlock Text="{Binding MeasuredValue}" FontSize="80" HorizontalAlignment="Center"/>
+				</StackPanel>
+			</SplitView>
+		</TabItem>
+
+		<TabItem Header="Graph">
+		</TabItem>
+	</TabControl>
 </UserControl>

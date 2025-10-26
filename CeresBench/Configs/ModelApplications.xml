@@ -2,12 +2,39 @@
 <Config>
   <Application name="GenericDMM">
     <MatchRule>HEWLETT-PACKARD.*34401A.*</MatchRule>
-    <Initlization>*RST</Initlization>
-    <Initlization>*CLS</Initlization>
-  </Application>
+    <Display>
+      <SetOff>DISP OFF</SetOff>
+      <SetOn>DISP ON</SetOn>
+    </Display>
+    <Trigger>
+      <SetImmdediate>TRIG:SOUR IMM</SetImmdediate>
+      <SetBus>TRIG:SOUR BUS</SetBus>
+      <BusTrigger>*TRG</BusTrigger>
+      <SetScpi>TRIG:SOUR BUS</SetScpi>
+      <SetExternal>TRIG:SOUR EXT</SetExternal>
+      <SetBrust type="MinMax" min="1" max="50000">SAMP:COUN</SetBrust>
+    </Trigger>
+    <MeasureMode name="DC Voltage">
+      <Unit>VDC</Unit>
+      <SwitchMode>SENS:FUNC "VOLT:DC"</SwitchMode>
+      <SetRange type="FixedList" list="0.1,1,10,100,1000">SENS:VOLT:DC:RANG</SetRange>
+      <ToggleAutoRange>SENS:VOLT:DC:RANG:AUTO</ToggleAutoRange>
+      <SetNPLC type="FixedList" list="0.02,0.2,1,10,100">SENS:VOLT:DC:NPLC</SetNPLC>
+      <ToggleAutoZero>SENS:ZERO:AUTO</ToggleAutoZero>
+      <ToggleHiZ>INP:IMP:AUTO</ToggleHiZ>
+    </MeasureMode>
+    <MeasureMode name="AC Voltage">
+      <Unit>VAC</Unit>
+      <SwitchMode>SENS:FUNC "VOLT:AC"</SwitchMode>
+      <SetRange type="FixedList" list="0.1,1,10,100,750">SENS:VOLT:AC:RANG</SetRange>
+      <ToggleAutoRange>SENS:VOLT:AC:RANG:AUTO</ToggleAutoRange>
+      <SetNPLC type="FixedList" list="0.02,0.2,1,10,100">SENS:VOLT:DC:NPLC</SetNPLC>
+      <SetBandWidth type="FixedList" list="3,20,200">SENS:DET:BAND</SetBandWidth>
+      <ToggleAutoZero>SENS:ZERO:AUTO</ToggleAutoZero>
+      <ToggleHiZ>INP:IMP:AUTO</ToggleHiZ>
+    </MeasureMode>
+</Application>
   <Application name="GenericCounter">
     <MatchRule>HEWLETT-PACKARD.*531[38][12].*</MatchRule>
-    <Initlization>*RST</Initlization>
-    <Initlization>*CLS</Initlization>
   </Application>
 </Config>

@@ -2,10 +2,8 @@ using Avalonia.Controls;
 
 namespace CeresBench.Views.Application;
 
-public partial class GenericDMMView : UserControl, IVersionView
+public partial class GenericDMMView : UserControl
 {
-    string IVersionView.VersionString => "1.0.0";
-
     public GenericDMMView()
     {
         InitializeComponent();

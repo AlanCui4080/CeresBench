@@ -48,8 +48,8 @@
 							  Watermark="GPIB0::1::INSTR ... etc." KeyDown="CustonVisaResourceNameTextBox_KeyDown"
 							  VerticalAlignment="Center" HorizontalAlignment="Stretch">
 					</TextBox>
-
 				</Grid>
+
 				<StackPanel>
 					<Grid ColumnDefinitions="3*,40,2*" >
 						<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Lock:" FontSize="16"/>
@@ -184,6 +184,7 @@
 			</StackPanel>
 		</SplitView.Pane>
 
-		<ContentControl Content="{Binding ApplicationView}"></ContentControl>
+		<ContentControl Content="{ReflectionBinding ApplicationView}" />
+
 	</SplitView>
 </UserControl>

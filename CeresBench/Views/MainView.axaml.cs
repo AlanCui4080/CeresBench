@@ -1,8 +1,5 @@
 ﻿using Avalonia.Controls;
 using CeresBench.ViewModels;
-using System;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
 
 namespace CeresBench.Views;
 
