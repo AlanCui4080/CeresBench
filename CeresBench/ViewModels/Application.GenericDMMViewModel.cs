@@ -1,78 +1,156 @@
 ﻿using CeresBench.Models;
 using CeresBench.Models.Application;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using FluentIcons.Common.Internals;
+using Ivi.Visa;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Linq;
 using System.Reflection;
+using System.Windows.Input;
+using System.Xml;
 
 namespace CeresBench.ViewModels.Application;
 
 public partial class GenericDMMViewModel : ViewModelBase
 {
     
-    private CeresGenericDMMMModel _model = new();
+    private CeresGenericDMMMModel _model;
 
-    public VISAResourceManagerModel ResourceManagerModel
-    {
-        get
-        {
-            return _model.ResourceManager;
-        }
-        set
-        {
-            _model.ResourceManager = value;
-        }
-    }
 
     public ObservableCollection<CeresGenericDMMMModel.MeasurementModeItem> MeasurementModeList => _model.MeasurementModeList;
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsRangeAvailable))]
+    [NotifyPropertyChangedFor(nameof(IsNPLCAvailable))]
+    [NotifyPropertyChangedFor(nameof(IsBandwidthAvailable))]
+    [NotifyPropertyChangedFor(nameof(MeasurementRangeCombo))]
+    [NotifyPropertyChangedFor(nameof(MeasurementNPLCCombo))]
+    [NotifyPropertyChangedFor(nameof(MeasurementBandwidthCombo))]
+    [NotifyPropertyChangedFor(nameof(MeasurementRangeSelectedIndex))]
+    [NotifyPropertyChangedFor(nameof(MeasurementNPLCSelectedIndex))]
+    [NotifyPropertyChangedFor(nameof(MeasurementBandwidthSelectedIndex))]
     private int _measurementModeSelectedIndex = -1;
     partial void OnMeasurementModeSelectedIndexChanged(int value)
     {
-        if (value != -1)
+        var modeString = MeasurementModeList[MeasurementModeSelectedIndex].ModeString;
+        if (modeString != null && value != -1)
         {
-            IsRangeAvailable = MeasurementModeList[MeasurementModeSelectedIndex].SetRangeInstruction != null;
-            
-            IsNPLCAvailable = MeasurementModeList[MeasurementModeSelectedIndex].SetNPLCInstruction != null;
-            
-            MeasurementRangeSelectedIndex = 0;
-            MeasurementNPLCSelectedIndex = 0;
+            _model.SwitchMode(modeString);
         }
     }
 
     public ObservableCollection<string> MeasurementRangeCombo => new(MeasurementModeList[MeasurementModeSelectedIndex == -1 ? 0 : MeasurementModeSelectedIndex].RangeCombo.ValueList);
-    [ObservableProperty]
-    private bool _isRangeAvailable;
-    [ObservableProperty]
-    private int _measurementRangeSelectedIndex = 0;
-    partial void OnMeasurementRangeSelectedIndexChanged(int value)
-    {
-        if (IsRangeAvailable)
+    public bool IsRangeAvailable => MeasurementModeList[MeasurementModeSelectedIndex].SetRangeInstruction != null;
+    public int MeasurementRangeSelectedIndex { 
+        get
         {
-            _model.SendInstruction(MeasurementModeList[MeasurementModeSelectedIndex].SetRangeInstruction,
-                           MeasurementModeList[MeasurementModeSelectedIndex].RangeCombo.ValueList[MeasurementRangeSelectedIndex]);
+            var instruction = MeasurementModeList[MeasurementModeSelectedIndex].SetRangeInstruction;
+            if (instruction == null)
+            {
+                return -1;
+            }
+            var now = Convert.ToDouble(_model.Query(instruction));
+            for (int i = 0; i < MeasurementRangeCombo.Count; i++)
+            {
+                if (Convert.ToDouble(MeasurementRangeCombo[i]) == now)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        set 
+        {
+            var instruction = MeasurementModeList[MeasurementModeSelectedIndex].SetRangeInstruction;
+            if (instruction == null)
+            {
+                return;
+            }
+            if (value != -1)
+            {
+                _model.Send(instruction, MeasurementModeList[MeasurementModeSelectedIndex].RangeCombo.ValueList[value]);
+            }
         }
     }
 
     public ObservableCollection<string> MeasurementNPLCCombo => new(MeasurementModeList[MeasurementModeSelectedIndex == -1 ? 0 : MeasurementModeSelectedIndex].NPLCCombo.ValueList);
-    [ObservableProperty]
-    private bool _isNPLCAvailable;
-    [ObservableProperty]
-    private int _measurementNPLCSelectedIndex = 0;
-    partial void OnMeasurementNPLCSelectedIndexChanged(int value)
+    public bool IsNPLCAvailable => MeasurementModeList[MeasurementModeSelectedIndex].SetNPLCInstruction != null;
+    public int MeasurementNPLCSelectedIndex
     {
-        if (IsNPLCAvailable)
+        get
         {
-            _model.SendInstruction(MeasurementModeList[MeasurementModeSelectedIndex].SetNPLCInstruction,
-                           MeasurementModeList[MeasurementModeSelectedIndex].NPLCCombo.ValueList[MeasurementNPLCSelectedIndex]);
+            var instruction = MeasurementModeList[MeasurementModeSelectedIndex].SetNPLCInstruction;
+            if (instruction == null)
+            {
+                return -1;
+            }
+            var now = Convert.ToDouble(_model.Query(instruction));
+            for (int i = 0; i < MeasurementNPLCCombo.Count; i++)
+            {
+                if (Convert.ToDouble(MeasurementNPLCCombo[i]) == now)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        set
+        {
+            var instruction = MeasurementModeList[MeasurementModeSelectedIndex].SetNPLCInstruction;
+            if (instruction == null)
+            {
+                return;
+            }
+            if (value != -1)
+            {
+                _model.Send(instruction, MeasurementModeList[MeasurementModeSelectedIndex].NPLCCombo.ValueList[value]);
+            }
+        }
+    }
+
+    public ObservableCollection<string> MeasurementBandwidthCombo => new(MeasurementModeList[MeasurementModeSelectedIndex == -1 ? 0 : MeasurementModeSelectedIndex].BandwidthCombo.ValueList);
+    public bool IsBandwidthAvailable => MeasurementModeList[MeasurementModeSelectedIndex].SetBandwidthInstruction != null;
+    public int MeasurementBandwidthSelectedIndex {
+        get
+        {
+            var instruction = MeasurementModeList[MeasurementModeSelectedIndex].SetBandwidthInstruction;
+            if (instruction == null)
+            {
+                return -1;
+            }
+            var now = Convert.ToDouble(_model.Query(instruction));
+            for (int i = 0; i < MeasurementBandwidthCombo.Count; i++)
+            {
+                if (Convert.ToDouble(MeasurementBandwidthCombo[i]) == now)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+        set
+        {
+            var instruction = MeasurementModeList[MeasurementModeSelectedIndex].SetBandwidthInstruction;
+            if (instruction == null)
+            {
+                return;
+            }
+            if (value != -1)
+            {
+                _model.Send(instruction, MeasurementModeList[MeasurementModeSelectedIndex].BandwidthCombo.ValueList[value]);
+            }
         }
     }
 
     [ObservableProperty]
     private string _measuredValue = "";
 
-    public GenericDMMViewModel()
+    public GenericDMMViewModel(XmlNode node, IMessageBasedSession instrumentSession)
     {
+        _model = new CeresGenericDMMMModel(node, instrumentSession);
         _model.PropertyChanged += (sender, e) =>
         {
             if (e.PropertyName == nameof(_model.MeasuredValue))
@@ -80,5 +158,13 @@ public partial class GenericDMMViewModel : ViewModelBase
                 MeasuredValue = _model.MeasuredValue;
             }
         };
+        var now = _model.GetMode();
+        for (int i = 0; i < MeasurementModeList.Count; i++)
+        {
+            if (MeasurementModeList[i].ModeString == now)
+            {
+                MeasurementModeSelectedIndex = i;
+            }
+        }
     }
 }

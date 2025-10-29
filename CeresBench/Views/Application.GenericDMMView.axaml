@@ -10,10 +10,10 @@
 
 	<TabControl>
 		<TabItem Header="Basic">
-			<SplitView IsPaneOpen="True" PanePlacement="Left" DisplayMode="CompactInline" OpenPaneLength="200" PaneBackground="{DynamicResource SystemAltLowColor}">
+			<SplitView IsPaneOpen="True" PanePlacement="Left" DisplayMode="CompactInline" OpenPaneLength="250" PaneBackground="{DynamicResource SystemAltLowColor}">
 				<SplitView.Pane>
 					<StackPanel>
-						<Grid ColumnDefinitions="*,20,2*">
+						<Grid ColumnDefinitions="3*,10,3*">
 							<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Mode:" FontSize="16"/>
 							<ComboBox Grid.Column="2" ItemsSource="{Binding MeasurementModeList}"
 									  SelectedIndex="{Binding MeasurementModeSelectedIndex}"
@@ -25,19 +25,24 @@
 								</ComboBox.ItemTemplate>
 							</ComboBox>
 						</Grid>
-						<Grid ColumnDefinitions="*,20,2*" Margin="0,5,0,0">
+						<Grid ColumnDefinitions="3*,10,3*" Margin="0,5,0,0" IsVisible="{Binding IsRangeAvailable}">
 							<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Range:" FontSize="16"/>
 							<ComboBox ItemsSource="{Binding MeasurementRangeCombo}" Grid.Column="2" Height="35"
 									  SelectedIndex="{Binding MeasurementRangeSelectedIndex}"
-									  IsEnabled="{Binding IsRangeAvailable}"
 									  VerticalAlignment="Center" HorizontalAlignment="Stretch">
 							</ComboBox>
 						</Grid>
-						<Grid ColumnDefinitions="*,20,2*" Margin="0,5,0,0">
+						<Grid ColumnDefinitions="3*,10,3*" Margin="0,5,0,0" IsVisible="{Binding IsNPLCAvailable}">
 							<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="NPLC:" FontSize="16"/>
 							<ComboBox ItemsSource="{Binding MeasurementNPLCCombo}" Grid.Column="2" Height="35"
 									  SelectedIndex="{Binding MeasurementNPLCSelectedIndex}"
-									  IsEnabled="{Binding IsNPLCAvailable}"
+									  VerticalAlignment="Center" HorizontalAlignment="Stretch">
+							</ComboBox>
+						</Grid>
+						<Grid ColumnDefinitions="3*,10,3*" Margin="0,5,0,0" IsVisible="{Binding IsBandwidthAvailable}">
+							<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Bandwidth:" FontSize="16"/>
+							<ComboBox ItemsSource="{Binding MeasurementBandwidthCombo}" Grid.Column="2" Height="35"
+									  SelectedIndex="{Binding MeasurementBandwidthSelectedIndex}"
 									  VerticalAlignment="Center" HorizontalAlignment="Stretch">
 							</ComboBox>
 						</Grid>

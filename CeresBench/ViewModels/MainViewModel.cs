@@ -6,6 +6,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using static CeresBench.Models.VISAResourceManagerModel;
@@ -70,7 +71,11 @@ public partial class MainViewModel : ViewModelBase
         {
             if (IsConnectedToResource)
             {
-                string resourceName = IsCustomVisaResourceName ? VisaCustomResourceName : _visaResourceManagerModel.VisaResourceList[VisaResourceSelectedIndex].VisaResourceName;
+                string resourceName = IsCustomVisaResourceName 
+                    ? VisaCustomResourceName
+                    : VisaResourceSelectedIndex != -1
+                        ? _visaResourceManagerModel.VisaResourceList[VisaResourceSelectedIndex].VisaResourceName
+                        : throw new ArgumentOutOfRangeException(nameof(VisaResourceSelectedIndex));
                 _visaResourceManagerModel.Connect(
                     resourceName,
                     IsVisaExclusiveAccess ? AccessModes.ExclusiveLock : AccessModes.None,
@@ -109,11 +114,12 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty] private bool _isPopExcetionMessage;
     [ObservableProperty] private string _popExceptionMessage = string.Empty;
 
+    [RelayCommand]
     private void PopExceptionOut(string message)
     {
         PopExceptionMessage = $"Error:\n{message}";
         IsPopExcetionMessage = true;
-        Task.Delay(5000);
+        Thread.Sleep(5000);
         IsPopExcetionMessage = false;
     }
 

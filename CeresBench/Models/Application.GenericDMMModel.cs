@@ -1,8 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
+using Ivi.Visa;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Resources;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
@@ -11,7 +14,6 @@ namespace CeresBench.Models.Application;
 
 public partial class CeresGenericDMMMModel : ObservableObject
 {
-    public VISAResourceManagerModel ResourceManager = new();
 
     public class ComboNumericType
     {
@@ -60,186 +62,235 @@ public partial class CeresGenericDMMMModel : ObservableObject
         [ObservableProperty]
         private string _unit = "";
 
-        [ObservableProperty]
-        public string? _switchModeInstruction;
-        [ObservableProperty]
-        public string? _setBandwidthInstruction;
+        public string? ModeString;
 
-        [ObservableProperty]
-        public string? _setRangeInstruction;
+        public string? SetRangeInstruction;
         public ComboNumericType RangeCombo = new();
 
-        [ObservableProperty]
-        public string? _setNPLCInstruction;
+        public string? SetNPLCInstruction;
         public ComboNumericType NPLCCombo = new();
 
+
+        public string? SetBandwidthInstruction;
+        public ComboNumericType BandwidthCombo = new();
+
+        public string? ToggleAutoRangeInstruction;
+        public string? ToggleAutoZeroInstruction;
+        public string? SetHiZInstruction;
+    }
+
+    public partial class TriggerModeItem : ObservableObject
+    {
         [ObservableProperty]
-        public string? _toggleAutoRangeInstruction;
-        [ObservableProperty]
-        public string? _toggleAutoZeroInstruction;
-        [ObservableProperty]
-        public string? _toggleHiZInstruction;
+        private string _mode = "";
+
+        public string? _switchModeInstruction;
     }
 
     public ObservableCollection<MeasurementModeItem> MeasurementModeList = new();
+    private List<string> _preInitInstructionList = new();
+    private string? _switchModeInstrcution;
+    private string? _postInitQuery;
+    private string? _dispOnInstruction;
+    private string? _dispOffInstruction;
 
     [ObservableProperty]
     private string _measuredValue = "";
 
-    public void SendInstruction(string instruction, string range)
+    private IMessageBasedSession _instrumentSession;
+
+    public void Send(string instruction, string param)
     {
-        ResourceManager.FormattedIO.WriteLine($"{instruction} {range}");
+        Debug.WriteLine($"[ApplicationCenericDMMModel] send {instruction} {param}");
+        _instrumentSession.FormattedIO.WriteLine($"{instruction} {param}");
     }
 
-    public CeresGenericDMMMModel()
+    public void SwitchMode(string mode)
     {
-        //_resourceManager = resourceManager;
-
-        XmlDocument xmlDocument = new();
-        xmlDocument.Load("Configs/ModelApplications.xml");
-        var rootElement = xmlDocument.DocumentElement;
-
-        if (rootElement == null)
-        {
-            return;
-        }
-
-        foreach (XmlNode? node in rootElement.ChildNodes)
-        {
-            if (node?.Name == "Application" && node.Attributes?.GetNamedItem("name")?.Value == "GenericDMM")
-            {
-                foreach (XmlNode? childNode in node.ChildNodes)
-                {
-                    switch (childNode?.Name)
-                    {
-                        //case "Reset":
-                        //    resourceManager.FormattedIO?.WriteLine(childNode.InnerText);
-                        //    break;
-                        case "MeasureMode":
-                            MeasurementModeItem modeItem = new MeasurementModeItem();
-                            modeItem.Mode = childNode.Attributes?.GetNamedItem("name")?.Value ?? "Invalid Config XML";
-                            foreach (XmlNode? key in childNode.ChildNodes)
-                            {
-                                switch (key?.Name)
-                                {
-                                    case "Unit":
-                                        modeItem.Unit = key.InnerText;
-                                        break;
-                                    case "SwitchMode":
-                                        modeItem.SwitchModeInstruction = key.InnerText;
-                                        break;
-                                    case "SetRange":
-                                        modeItem.SetRangeInstruction = key.InnerText;
-                                        modeItem.RangeCombo = new(key);
-                                        break;
-                                    case "SetNPLC":
-                                        modeItem.SetNPLCInstruction = key.InnerText;
-                                        modeItem.NPLCCombo = new(key);
-                                        break;
-                                    case "SetBandWidth":
-                                        modeItem.SetBandwidthInstruction = key.InnerText;
-                                        break;
-                                    case "ToggleAutoRange":
-                                        modeItem.ToggleAutoRangeInstruction = key.InnerText;
-                                        break;
-                                    case "ToggleAutoZero":
-                                        modeItem.ToggleAutoZeroInstruction = key.InnerText;
-                                        break;
-                                    case "ToggleHiZ":
-                                        modeItem.ToggleHiZInstruction = key.InnerText;
-                                        break;
-                                }
-                            }
-                            MeasurementModeList.Add(modeItem);
-                            break;
-                    }
-                }
-            }
-        }
-        Task.Run(() =>
-        {
-            while (true)
-            {
-                try
-                {
-                    if (ResourceManager.FormattedIO != null)
-                    {
-                        ResourceManager.FormattedIO.WriteLine("TRIG:SOUR IMM");
-                        ResourceManager.FormattedIO.WriteLine("READ?");
-                        var value = ResourceManager.FormattedIO.ReadDouble();
-                        if (value >= 9.90000000E+37)
-                        {
-                            MeasuredValue = "OVLD";
-                        }
-                        else
-                        {
-                            MeasuredValue = FormatWithCommasAndPrecision(value);
-                        }
-                    }
-                }
-                catch
-                {
-
-                }
-            }
-        });
+        Debug.WriteLine($"[ApplicationCenericDMMModel] switch mode {mode}");
+        _instrumentSession.FormattedIO.WriteLine($"{_switchModeInstrcution} {mode}");
     }
 
-    private static string FormatWithCommasAndPrecision(double number)
+    public string GetMode()
     {
-        // 获取整数部分和小数部分
-        string numberString = number.ToString("#,0.####################");
+        ArgumentNullException.ThrowIfNull(_switchModeInstrcution);
+        return Query(_switchModeInstrcution);
+    }
 
-        int decimalPointIndex = numberString.IndexOf('.');
+    public string Query(string instruction)
+    {
+        _instrumentSession.FormattedIO.WriteLine($"{instruction}?");
+        var result = _instrumentSession.FormattedIO.ReadLine().TrimEnd();
+        Debug.WriteLine($"[ApplicationCenericDMMModel] query {instruction}? result {result}");
+        return result;
+    }
 
-        string integerPart = (decimalPointIndex >= 0) ? numberString.Substring(0, decimalPointIndex) : numberString;
-        string fractionalPart = (decimalPointIndex >= 0) ? numberString.Substring(decimalPointIndex + 1) : "";
+    private void Init()
+    {
 
-        // 格式化整数部分（每三位插入一个逗号）
-        integerPart = string.Format("{0:#,0}", long.Parse(integerPart));
+    }
 
-        // 格式化小数部分（每三位插入一个逗号）
-        string formattedFractionalPart = "";
-        for (int i = 0; i < fractionalPart.Length; i += 3)
+    public CeresGenericDMMMModel(XmlNode appNode, IMessageBasedSession instrumentSession)
+    {
+        _instrumentSession = instrumentSession;
+
+        foreach (XmlNode? childNode in appNode.ChildNodes)
         {
-            if (i + 3 <= fractionalPart.Length)
+            switch (childNode?.Name)
             {
-                formattedFractionalPart += fractionalPart.Substring(i, 3) + ",";
-            }
-            else
-            {
-                formattedFractionalPart += fractionalPart.Substring(i);
+                case "SwitchMode":
+                    _switchModeInstrcution = childNode.InnerText;
+                    break;
+                case "Init":
+                    foreach (XmlNode? key in childNode.ChildNodes)
+                    {
+                        switch (key?.Name)
+                        {
+                            case "PreInit":
+                                _preInitInstructionList.Add(key.InnerText);
+                                break;
+                            case "PostInit":
+                                _postInitQuery = key.InnerText;
+                                break;
+                        }
+                    }
+                    break;
+                case "Display":
+                    foreach (XmlNode? key in childNode.ChildNodes)
+                    {
+                        switch (key?.Name)
+                        {
+                            case "SetOff":
+                                _dispOffInstruction = key.InnerText;
+                                break;
+                            case "SetOn":
+                                _dispOnInstruction = key.InnerText;
+                                break;
+                        }
+                    }
+                    break;
+                case "MeasureMode":
+                    var modeItem = new MeasurementModeItem { Mode = childNode.Attributes?.GetNamedItem("name")?.Value ?? "Invalid Config XML" };
+                    foreach (XmlNode? key in childNode.ChildNodes)
+                    {
+                        switch (key?.Name)
+                        {
+                            case "Unit":
+                                modeItem.Unit = key.InnerText;
+                                break;
+                            case "ModeString":
+                                modeItem.ModeString = key.InnerText;
+                                break;
+                            case "SetRange":
+                                modeItem.SetRangeInstruction = key.InnerText;
+                                modeItem.RangeCombo = new(key);
+                                break;
+                            case "SetNPLC":
+                                modeItem.SetNPLCInstruction = key.InnerText;
+                                modeItem.NPLCCombo = new(key);
+                                break;
+                            case "SetBandWidth":
+                                modeItem.SetBandwidthInstruction = key.InnerText;
+                                modeItem.BandwidthCombo = new(key);
+                                break;
+                            case "ToggleAutoRange":
+                                modeItem.ToggleAutoRangeInstruction = key.InnerText;
+                                break;
+                            case "ToggleAutoZero":
+                                modeItem.ToggleAutoZeroInstruction = key.InnerText;
+                                break;
+                            case "SetHiZ":
+                                modeItem.SetHiZInstruction = key.InnerText;
+                                break;
+                        }
+                    }
+                    MeasurementModeList.Add(modeItem);
+                    break;
             }
         }
+        //Task.Run(() =>
+        //{
+        //    while (true)
+        //    {
+        //        try
+        //        {
+        //            if (ResourceManager.FormattedIO != null)
+        //            {
+        //                ResourceManager.FormattedIO.WriteLine("TRIG:SOUR IMM");
+        //                ResourceManager.FormattedIO.WriteLine("READ?");
+        //                var value = ResourceManager.FormattedIO.ReadDouble();
+        //                if (value >= 9.90000000E+37)
+        //                {
+        //                    MeasuredValue = "OVLD";
+        //                }
+        //                else
+        //                {
+        //                    MeasuredValue = FormatWithCommasAndPrecision(value);
+        //                }
+        //            }
+        //        }
+        //        catch (IOTimeoutException ex)
+        //        {
+        //            _ = ex;
+        //        }
+        //        catch
+        //        {
+        //            throw;
+        //        }
+        //        finally
+        //        {
+        //            Task.Delay(10).Wait();
+        //        }
+        //    }
+        //});
+    }
 
-        // 移除最后的逗号（如果有）
-        if (formattedFractionalPart.EndsWith(","))
+    public static string FormatWithCommasAndPrecision(double value, string unit, int totalDigits = 10)
+    {
+        string numStr = Math.Abs(value).ToString("F" + totalDigits);
+        
+        string[] parts = numStr.Split('.');
+        string intPart = parts[0];
+        string decimalPart = parts.Length > 1 ? parts[1] : "";
+
+        string formattedIntPart = "";
+        for (int i = intPart.Length - 1, count = 0; i >= 0; i--)
         {
-            formattedFractionalPart = formattedFractionalPart.Substring(0, formattedFractionalPart.Length - 1);
-        }
-
-        // 合并整数和小数部分
-        string formattedNumber = integerPart;
-
-        if (!string.IsNullOrEmpty(formattedFractionalPart))
-        {
-            formattedNumber += "." + formattedFractionalPart;
-        }
-
-        // 确保总共十位有效数字
-        int totalLength = integerPart.Length + formattedFractionalPart.Length;
-        if (totalLength > 10)
-        {
-            if (formattedFractionalPart.Length > 0)
+            if (count > 0 && count % 3 == 0)
             {
-                formattedNumber = formattedNumber.Substring(0, 10);
+                formattedIntPart = "," + formattedIntPart;
             }
-            else
-            {
-                formattedNumber = formattedNumber.Substring(0, 10);
-            }
+            formattedIntPart = intPart[i] + formattedIntPart;
+            count++;
         }
 
-        return formattedNumber;
+        string formattedDecimalPart = "";
+        for (int i = 0; i < decimalPart.Length; i++)
+        {
+            if (i > 0 && i % 3 == 0)
+            {
+                formattedDecimalPart += ",";
+            }
+            formattedDecimalPart += decimalPart[i];
+        }
+
+        string result = formattedIntPart;
+        if (!string.IsNullOrEmpty(formattedDecimalPart))
+        {
+            result += "." + formattedDecimalPart;
+        }
+
+        if (value < 0)
+        {
+            result = "-" + result;
+        }
+        else
+        {
+            result = "+" + result;
+        }
+
+        result += unit;
+
+        return result;
     }
 }

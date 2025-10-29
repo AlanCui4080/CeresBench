@@ -228,6 +228,7 @@ public partial class VISAResourceManagerModel
             if (cachedItem != null)
             {
                 item = cachedItem;
+                Debug.WriteLine($"[VISAResourceManagerModel] found cache for {v}");
                 item.Present = "From Cache";
             }
             VisaResourceList.Add(item);
@@ -237,11 +238,11 @@ public partial class VISAResourceManagerModel
         {
             var idx = i;
             Task.Run(() => {
-                Debug.WriteLine($"[VISAResourceManagerModel] started probe for {VisaResourceList[idx].VisaResourceName}");
+                Debug.WriteLine($"[VISAResourceManagerModel] started probe/update for {VisaResourceList[idx].VisaResourceName}");
                 var probeResult = GetVisaResourceItemByNameViaTestConnection(VisaResourceList[idx].VisaResourceName);
                 VisaResourceList[idx] = probeResult;
                 SaveToCache(probeResult);
-                Debug.WriteLine($"[VISAResourceManagerModel] completed probe for {VisaResourceList[idx].VisaResourceName}");
+                Debug.WriteLine($"[VISAResourceManagerModel] completed probe/update for {VisaResourceList[idx].VisaResourceName}");
             });
         }
     }
