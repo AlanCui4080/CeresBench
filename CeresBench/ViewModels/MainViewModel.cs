@@ -4,8 +4,8 @@ using CommunityToolkit.Mvvm.Input;
 using Ivi.Visa;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using static CeresBench.Models.VISAResourceManagerModel;
@@ -14,186 +14,131 @@ namespace CeresBench.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-    private VISAResourceManagerModel _visaResourceManagerModel = new();
+    private readonly VISAResourceManagerModel _visaResourceManagerModel = new();
 
-    [ObservableProperty]
-    private bool _isVisaExclusiveAccess = true;
-    [ObservableProperty]
-    private bool _isVisaAssertREN = true;
+    [ObservableProperty] private bool _isVisaExclusiveAccess;
+    [ObservableProperty] private bool _isVisaAssertREN = true;
+    [ObservableProperty] private int _visaTimeout = 1000;
 
-    [ObservableProperty]
-    private int _visaTimeout = 1000;
-    [ObservableProperty]
-    private int _terminationCharListSelectedIndex = 0;
-    [ObservableProperty]
-    private string[] _terminationCharList = { "\\n", "\\r", "\\r\\n", "None" };
+    [ObservableProperty] private int _terminationCharListSelectedIndex;
+    [ObservableProperty] private string[] _terminationCharList = { "\\n", "\\r", "\\r\\n", "None" };
 
-    [ObservableProperty]
-    private string _visaCustomResourceName = "";
-    [ObservableProperty]
-    private bool _isVisaResouceComboDropDownOpen = false;
-    [ObservableProperty]
-    private int _visaResourceSelectedIndex = -1;
-    partial void OnVisaResourceSelectedIndexChanged(int value)
-    {
-        CurrentlySelectedResource = _visaResourceManagerModel.VisaResourceList[value == -1 ? 0 : value];
-    }
+    [ObservableProperty] private string _visaCustomResourceName = string.Empty;
+    [ObservableProperty] private bool _isVisaResouceComboDropDownOpen;
+    [ObservableProperty] private int _visaResourceSelectedIndex = -1;
+
     public ObservableCollection<VisaResourceItem> VisaResourceList => _visaResourceManagerModel.VisaResourceList;
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(VisaResourceList))]
-    public VisaResourceItem _currentlySelectedResource = new();
-    [ObservableProperty]
-    private bool _isCustomVisaResourceName = false;
-    partial void OnIsCustomVisaResourceNameChanged(bool value)
+    private VisaResourceItem _currentlySelectedResource = new();
+
+    [ObservableProperty] private bool _isCustomVisaResourceName;
+
+    partial void OnVisaResourceSelectedIndexChanged(int value)
     {
-        if (IsCustomVisaResourceName)
-        {
-            CurrentlySelectedResource = _visaResourceManagerModel.GetVisaResourceItemByNameViaTestConnection(VisaCustomResourceName);
-        }
-        else
-        {
-            VisaResourceSelectedIndex = 0;
-            CurrentlySelectedResource =
-                _visaResourceManagerModel.VisaResourceList[VisaResourceSelectedIndex == -1 ? 0 : VisaResourceSelectedIndex];
-        }
-    }
-    [RelayCommand]
-    private void CustomVisaResourceAddressEntered()
-    {
-        OnIsCustomVisaResourceNameChanged(IsCustomVisaResourceName);
+        if (value < 0 || value >= _visaResourceManagerModel.VisaResourceList.Count)
+            return;
+
+        CurrentlySelectedResource = _visaResourceManagerModel.VisaResourceList[value];
     }
 
-    //public string CurrentlyUsedVISALibrary => _visaResourceManagerModel.VisaManufacture;
+    partial void OnIsCustomVisaResourceNameChanged(bool value)
+    {
+        CurrentlySelectedResource = value
+            ? _visaResourceManagerModel.GetVisaResourceItemByNameViaTestConnection(VisaCustomResourceName)
+            : _visaResourceManagerModel.VisaResourceList.ElementAtOrDefault(VisaResourceSelectedIndex) ?? new();
+    }
+
+    [RelayCommand]
+    private void CustomVisaResourceAddressEntered() => OnIsCustomVisaResourceNameChanged(IsCustomVisaResourceName);
+
     public string CurrentlyUsedVISAVersion => _visaResourceManagerModel.VisaLibraryVersion.ToString();
     public string CurrentlyUsedVISASpecification => _visaResourceManagerModel.VisaSpecificationVersion.ToString();
 
-    [ObservableProperty]
-    private bool _isConnectedToResource;
+    [ObservableProperty] private bool _isConnectedToResource;
 
-    [ObservableProperty]
-    ViewModelBase? _applicationView;
-    [ObservableProperty]
-    string _applicationName = "";
-    [ObservableProperty]
-    string _applicationVersion = "";
-    [ObservableProperty]
-    string _applicationMatchedBy = "";
+    [ObservableProperty] private ViewModelBase? _applicationView;
+    [ObservableProperty] private string _applicationName = string.Empty;
+    [ObservableProperty] private string _applicationVersion = string.Empty;
+    [ObservableProperty] private string _applicationMatchedBy = string.Empty;
 
     [RelayCommand]
     private void ConnectToResource()
     {
-        string toConnectedResourceName;
         try
         {
             if (IsConnectedToResource)
             {
-                if (IsCustomVisaResourceName)
-                {
-                    toConnectedResourceName = VisaCustomResourceName ?? "";
-                }
-                else
-                {
-                    if (VisaResourceSelectedIndex != -1)
-                    {
-                        toConnectedResourceName = _visaResourceManagerModel.VisaResourceList[VisaResourceSelectedIndex].VisaResourceName;
-                    }
-                    else
-                    {
-                        IsConnectedToResource = false;
-                        PopExceptionOut("No Resource Selected");
-                        return;
-                    }
-                }
-                _visaResourceManagerModel.Connect(toConnectedResourceName,
-                                                  IsVisaExclusiveAccess ? AccessModes.ExclusiveLock : AccessModes.None,
-                                                  0,
-                                                  IsVisaAssertREN);
-                ApplicationView = GetMatchedViewModel(_visaResourceManagerModel.IdnString ?? "")
-                                 .GetConstructor(Array.Empty<Type>())
-                                 ?.Invoke(Array.Empty<Type>()) as ViewModelBase;
-                var model = ApplicationView as ViewModels.Application.GenericDMMViewModel;
-                if (model != null)
-                {
-                    model.ResourceManagerModel = _visaResourceManagerModel;
-                }
-                ApplicationName = ApplicationView?.GetType().Name ?? "";
-                ApplicationVersion = "";
+                string resourceName = IsCustomVisaResourceName ? VisaCustomResourceName : _visaResourceManagerModel.VisaResourceList[VisaResourceSelectedIndex].VisaResourceName;
+                _visaResourceManagerModel.Connect(
+                    resourceName,
+                    IsVisaExclusiveAccess ? AccessModes.ExclusiveLock : AccessModes.None,
+                    0,
+                    IsVisaAssertREN
+                );
+
+                var (viewType, node) = GetMatchedViewModel(_visaResourceManagerModel.IdnString ?? "");
+                ApplicationView = Activator.CreateInstance(viewType, [node, _visaResourceManagerModel.ConnectedSession]) as ViewModelBase;
+
+                ApplicationName = ApplicationView?.GetType().Name ?? string.Empty;
+                ApplicationVersion = string.Empty;
                 ApplicationMatchedBy = "Ident String";
             }
             else
             {
                 _visaResourceManagerModel.Disconnect();
-
                 ApplicationView = new ViewModels.Application.DefaultViewModel();
-                ApplicationName = "";
-                ApplicationVersion = "";
-                ApplicationMatchedBy = "";
+                ApplicationName = string.Empty;
+                ApplicationVersion = string.Empty;
+                ApplicationMatchedBy = string.Empty;
             }
         }
         catch (Exception ex)
         {
             IsConnectedToResource = false;
-            if (ex is Ivi.Visa.IOTimeoutException && IsVisaExclusiveAccess)
-            {
-                PopExceptionOut($"{ex.Message} This may caused by a Lock which cannot be acquired.");
-            }
-            else
-            {
-                PopExceptionOut(ex.Message);
-            }
+
+            string message = ex is Ivi.Visa.IOTimeoutException && IsVisaExclusiveAccess
+                ? $"{ex.Message} This may be caused by a lock that cannot be acquired."
+                : ex.Message;
+
+            Task.Run(() => { PopExceptionOut(message); });
         }
     }
-    [ObservableProperty]
-    private bool _isPopExcetionMessage;
-    [ObservableProperty]
-    private string _popExceptionMessage = "";
-    [RelayCommand]
+
+    [ObservableProperty] private bool _isPopExcetionMessage;
+    [ObservableProperty] private string _popExceptionMessage = string.Empty;
+
     private void PopExceptionOut(string message)
     {
-        Task.Run(() =>
-        {
-            PopExceptionMessage = $"Error:\n{message}";
-            IsPopExcetionMessage = true;
-            Thread.Sleep(5000);
-            IsPopExcetionMessage = false;
-        });
+        PopExceptionMessage = $"Error:\n{message}";
+        IsPopExcetionMessage = true;
+        Task.Delay(5000);
+        IsPopExcetionMessage = false;
     }
 
-    private Type GetMatchedViewModel(string idnString)
+    private (Type, XmlNode) GetMatchedViewModel(string idnString)
     {
-        XmlDocument xmlDocument = new();
-        xmlDocument.Load("./Configs/ModelApplications.xml");
-        var rootElement = xmlDocument.DocumentElement;
+        XmlDocument xml = new();
+        xml.Load("./Configs/ModelApplications.xml");
 
-        if (rootElement == null)
-        {
-            throw new NotImplementedException();
-        }
+        var root = xml.DocumentElement ?? throw new InvalidOperationException("Invalid ModelApplications.xml");
 
-        foreach (XmlNode? node in rootElement.ChildNodes)
+        foreach (XmlNode node in root.SelectNodes("Application")!)
         {
-            if (node?.Name == "Application")
+            string pattern = node.Attributes?["match"]?.Value ?? string.Empty;
+            if (Regex.IsMatch(idnString, pattern))
             {
-                foreach (XmlNode? childNode in node.ChildNodes)
+                string appName = node.Attributes?["name"]?.Value ?? string.Empty;
+                return appName switch
                 {
-                    if (childNode?.Name == "MatchRule")
-                    {
-                        if (Regex.IsMatch(idnString, childNode?.InnerText ?? ""))
-                        {
-                            switch (node.Attributes?.GetNamedItem("name")?.Value)
-                            {
-                                case "GenericDMM":
-                                    return typeof(ViewModels.Application.GenericDMMViewModel);
-                                case "GenericCounter":
-                                    return typeof(ViewModels.Application.GenericCounterViewModel);
-                            }
-                        }
-                    }
-                }
-
+                    "GenericDMM" => (typeof(ViewModels.Application.GenericDMMViewModel), node),
+                    "GenericCounter" => (typeof(ViewModels.Application.GenericCounterViewModel), node),
+                    _ => throw new NotSupportedException($"Unknown Application: {appName}")
+                };
             }
         }
 
-        return typeof(ViewModels.Application.DefaultViewModel);
+        throw new InvalidOperationException("No matching application found for current resource.");
     }
 }
