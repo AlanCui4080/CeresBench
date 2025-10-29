@@ -1,16 +1,8 @@
-﻿using CeresBench.Models;
-using CeresBench.Models.Application;
+﻿using CeresBench.Models.Application;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using FluentIcons.Common.Internals;
 using Ivi.Visa;
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
-using System.Linq;
-using System.Reflection;
-using System.Windows.Input;
 using System.Xml;
 
 namespace CeresBench.ViewModels.Application;
@@ -32,6 +24,11 @@ public partial class GenericDMMViewModel : ViewModelBase
     [NotifyPropertyChangedFor(nameof(MeasurementRangeSelectedIndex))]
     [NotifyPropertyChangedFor(nameof(MeasurementNPLCSelectedIndex))]
     [NotifyPropertyChangedFor(nameof(MeasurementBandwidthSelectedIndex))]
+    [NotifyPropertyChangedFor(nameof(IsAutoRange))]
+    [NotifyPropertyChangedFor(nameof(IsAutoHiZAvailable))]
+    [NotifyPropertyChangedFor(nameof(IsAutoHiZ))]
+    [NotifyPropertyChangedFor(nameof(IsAutoZeroAvailable))]
+    [NotifyPropertyChangedFor(nameof(IsAutoZero))]
     private int _measurementModeSelectedIndex = -1;
     partial void OnMeasurementModeSelectedIndexChanged(int value)
     {
@@ -142,6 +139,92 @@ public partial class GenericDMMViewModel : ViewModelBase
             {
                 _model.Send(instruction, MeasurementModeList[MeasurementModeSelectedIndex].BandwidthCombo.ValueList[value]);
             }
+        }
+    }
+
+    private bool _isAutoRange = false;
+    public bool IsManualRange => !_isAutoRange;
+    public bool IsAutoRange
+    {
+        get
+        {
+            var instruction = MeasurementModeList[MeasurementModeSelectedIndex].ToggleAutoRangeInstruction;
+            if (instruction == null)
+            {
+                return false;
+            }
+            var value = Convert.ToUInt32(_model.Query(instruction)) == 0 ? false : true;
+            if (_isAutoRange != value)
+            {
+                _isAutoRange = value;
+            }
+            OnPropertyChanged(nameof(IsManualRange));
+            return value;
+        }
+        set
+        {
+            var instruction = MeasurementModeList[MeasurementModeSelectedIndex].ToggleAutoRangeInstruction;
+            if (instruction == null)
+            {
+                return;
+            }
+            _model.Send(instruction, value ? "ON" : "OFF");
+        }
+    }
+
+    public bool IsAutoHiZAvailable => MeasurementModeList[MeasurementModeSelectedIndex].ToggleHiZInstruction != null;
+    public bool IsAutoHiZ
+    {
+        get
+        {
+            var instruction = MeasurementModeList[MeasurementModeSelectedIndex].ToggleHiZInstruction;
+            if (instruction == null)
+            {
+                return false;
+            }
+            var value = Convert.ToUInt32(_model.Query(instruction)) == 0 ? false : true;
+            if (_isAutoRange != value)
+            {
+                _isAutoRange = value;
+            }
+            return value;
+        }
+        set
+        {
+            var instruction = MeasurementModeList[MeasurementModeSelectedIndex].ToggleHiZInstruction;
+            if (instruction == null)
+            {
+                return;
+            }
+            _model.Send(instruction, value ? "ON" : "OFF");
+        }
+    }
+
+    public bool IsAutoZeroAvailable => MeasurementModeList[MeasurementModeSelectedIndex].ToggleAutoZeroInstruction != null;
+    public bool IsAutoZero
+    {
+        get
+        {
+            var instruction = MeasurementModeList[MeasurementModeSelectedIndex].ToggleAutoZeroInstruction;
+            if (instruction == null)
+            {
+                return false;
+            }
+            var value = Convert.ToUInt32(_model.Query(instruction)) == 0 ? false : true;
+            if (_isAutoRange != value)
+            {
+                _isAutoRange = value;
+            }
+            return value;
+        }
+        set
+        {
+            var instruction = MeasurementModeList[MeasurementModeSelectedIndex].ToggleAutoZeroInstruction;
+            if (instruction == null)
+            {
+                return;
+            }
+            _model.Send(instruction, value ? "ON" : "OFF");
         }
     }
 

@@ -25,13 +25,27 @@
 								</ComboBox.ItemTemplate>
 							</ComboBox>
 						</Grid>
-						<Grid ColumnDefinitions="3*,10,3*" Margin="0,5,0,0" IsVisible="{Binding IsRangeAvailable}">
-							<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Range:" FontSize="16"/>
-							<ComboBox ItemsSource="{Binding MeasurementRangeCombo}" Grid.Column="2" Height="35"
-									  SelectedIndex="{Binding MeasurementRangeSelectedIndex}"
-									  VerticalAlignment="Center" HorizontalAlignment="Stretch">
-							</ComboBox>
+						<Grid ColumnDefinitions="3*,10,3*">
+							<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Auto Hi-Z:" FontSize="16"/>
+							<ToggleSwitch Grid.Column="2" IsChecked="{Binding IsAutoHiZ}" ></ToggleSwitch>
 						</Grid>
+						<Grid ColumnDefinitions="3*,10,3*">
+							<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Auto Zero:" FontSize="16"/>
+							<ToggleSwitch Grid.Column="2" IsChecked="{Binding IsAutoZero}" ></ToggleSwitch>
+						</Grid>
+						<StackPanel Orientation="Vertical" IsVisible="{Binding IsRangeAvailable}">
+							<Grid ColumnDefinitions="3*,10,3*">
+								<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Auto Range:" FontSize="16"/>
+								<ToggleSwitch Grid.Column="2" IsChecked="{Binding IsAutoRange}" ></ToggleSwitch>
+							</Grid>
+							<Grid ColumnDefinitions="3*,10,3*" Margin="0,5,0,0" IsVisible="{Binding IsManualRange}">
+								<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="Range:" FontSize="16"/>
+								<ComboBox ItemsSource="{Binding MeasurementRangeCombo}" Grid.Column="2" Height="35"
+										  SelectedIndex="{Binding MeasurementRangeSelectedIndex}"
+										  VerticalAlignment="Center" HorizontalAlignment="Stretch">
+								</ComboBox>
+							</Grid>
+						</StackPanel>
 						<Grid ColumnDefinitions="3*,10,3*" Margin="0,5,0,0" IsVisible="{Binding IsNPLCAvailable}">
 							<TextBlock Grid.Column="0" VerticalAlignment="Center" Text="NPLC:" FontSize="16"/>
 							<ComboBox ItemsSource="{Binding MeasurementNPLCCombo}" Grid.Column="2" Height="35"

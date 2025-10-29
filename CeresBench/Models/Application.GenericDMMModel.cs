@@ -76,7 +76,7 @@ public partial class CeresGenericDMMMModel : ObservableObject
 
         public string? ToggleAutoRangeInstruction;
         public string? ToggleAutoZeroInstruction;
-        public string? SetHiZInstruction;
+        public string? ToggleHiZInstruction;
     }
 
     public partial class TriggerModeItem : ObservableObject
@@ -199,8 +199,8 @@ public partial class CeresGenericDMMMModel : ObservableObject
                             case "ToggleAutoZero":
                                 modeItem.ToggleAutoZeroInstruction = key.InnerText;
                                 break;
-                            case "SetHiZ":
-                                modeItem.SetHiZInstruction = key.InnerText;
+                            case "ToggleHiZ":
+                                modeItem.ToggleHiZInstruction = key.InnerText;
                                 break;
                         }
                     }

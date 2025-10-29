@@ -22,7 +22,7 @@
       <ModeString>"VOLT"</ModeString>
       <SetRange type="FixedList" list="0.1,1,10,100,1000">SENS:VOLT:DC:RANG</SetRange>
       <SetNPLC type="FixedList" list="0.02,0.2,1,10,100">SENS:VOLT:DC:NPLC</SetNPLC>
-      <SetHiZ>INP:IMP:AUTO</SetHiZ>
+      <ToggleHiZ>INP:IMP:AUTO</ToggleHiZ>
       <ToggleAutoRange>SENS:VOLT:DC:RANG:AUTO</ToggleAutoRange>
       <ToggleAutoZero>SENS:ZERO:AUTO</ToggleAutoZero>
     </MeasureMode>
@@ -31,7 +31,7 @@
       <ModeString>"VOLT:AC"</ModeString>
       <SetRange type="FixedList" list="0.1,1,10,100,1000">SENS:VOLT:AC:RANG</SetRange>
       <SetBandWidth type="FixedList" list="3,20,200">SENS:DET:BAND</SetBandWidth>
-      <SetHiZ>INP:IMP:AUTO</SetHiZ>
+      <ToggleHiZ>INP:IMP:AUTO</ToggleHiZ>
       <ToggleAutoRange>SENS:VOLT:AC:RANG:AUTO</ToggleAutoRange>
       <ToggleAutoZero>SENS:ZERO:AUTO</ToggleAutoZero>
     </MeasureMode>
