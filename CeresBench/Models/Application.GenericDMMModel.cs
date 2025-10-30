@@ -101,7 +101,7 @@ public partial class CeresGenericDMMMModel : ObservableObject
     private string? _dispOffInstruction;
 
     [ObservableProperty]
-    private string _measuredValue = "";
+    private double _measuredValue;
     private IMessageBasedSession _instrumentSession;
 
     private long _queryCount = 0;
@@ -334,18 +334,7 @@ public partial class CeresGenericDMMMModel : ObservableObject
                     }
                 }
 
-                if (Math.Abs(value) >= 9.90000000E+36)
-                {
-                    MeasuredValue = "OVLD";
-                }
-                else if ((double.IsNaN(Math.Abs(value))))
-                {
-                    MeasuredValue = "NaN";
-                }
-                else
-                {
-                    MeasuredValue = FormatWithCommasAndPrecision(value, "V");
-                }
+                MeasuredValue = value;
             }
         });
     }
@@ -354,54 +343,5 @@ public partial class CeresGenericDMMMModel : ObservableObject
     {
         _statsTimer?.Stop();
         _statsTimer?.Dispose();
-    }
-
-    public static string FormatWithCommasAndPrecision(double value, string unit, int totalDigits = 10)
-    {
-        string numStr = Math.Abs(value).ToString("F" + totalDigits);
-        
-        string[] parts = numStr.Split('.');
-        string intPart = parts[0];
-        string decimalPart = parts.Length > 1 ? parts[1] : "";
-
-        string formattedIntPart = "";
-        for (int i = intPart.Length - 1, count = 0; i >= 0; i--)
-        {
-            if (count > 0 && count % 3 == 0)
-            {
-                formattedIntPart = "," + formattedIntPart;
-            }
-            formattedIntPart = intPart[i] + formattedIntPart;
-            count++;
-        }
-
-        string formattedDecimalPart = "";
-        for (int i = 0; i < decimalPart.Length; i++)
-        {
-            if (i > 0 && i % 3 == 0)
-            {
-                formattedDecimalPart += ",";
-            }
-            formattedDecimalPart += decimalPart[i];
-        }
-
-        string result = formattedIntPart;
-        if (!string.IsNullOrEmpty(formattedDecimalPart))
-        {
-            result += "." + formattedDecimalPart;
-        }
-
-        if (value < 0)
-        {
-            result = "-" + result;
-        }
-        else
-        {
-            result = "+" + result;
-        }
-
-        result += unit;
-
-        return result;
     }
 }

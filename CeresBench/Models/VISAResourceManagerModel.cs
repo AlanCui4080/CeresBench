@@ -80,7 +80,7 @@ public partial class VISAResourceManagerModel
         ConnectedSession = GlobalResourceManager.Open(visaResourceName, mode, timeout) as IMessageBasedSession;
         if (ConnectedSession != null)
         {
-            ConnectedSession.TimeoutMilliseconds = 5000;
+            ConnectedSession.TimeoutMilliseconds = 10000;
             if (assertRen) SetResourceToRemote(ConnectedSession);
         }
     }

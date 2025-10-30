@@ -62,8 +62,16 @@
 						</Grid>
 					</StackPanel>
 				</SplitView.Pane>
-				<StackPanel Orientation="Horizontal">
-					<TextBlock Text="{Binding MeasuredValue}" FontFamily="Consolas" FontSize="80" HorizontalAlignment="Center"/>
+				<StackPanel Orientation="Vertical">
+					<StackPanel Orientation="Horizontal">
+						<TextBlock Text="{Binding MeasuredValue}" FontFamily="Consolas" FontSize="80" HorizontalAlignment="Stretch"/>
+						<TextBlock Text="{Binding MeasuredUnit}" FontFamily="Consolas" FontSize="80" HorizontalAlignment="Stretch"/>
+					</StackPanel>	
+					<Grid ColumnDefinitions="*,*,*">
+						<TextBlock Grid.Column="0" Text="{Binding AvgValue}" FontFamily="Consolas" FontSize="24" HorizontalAlignment="Stretch"/>
+						<TextBlock Grid.Column="1" Text="{Binding MinValue}" FontFamily="Consolas" FontSize="24" HorizontalAlignment="Stretch"/>
+						<TextBlock Grid.Column="2" Text="{Binding MaxValue}" FontFamily="Consolas" FontSize="24" HorizontalAlignment="Stretch"/>
+					</Grid>
 				</StackPanel>
 			</SplitView>
 		</TabItem>

@@ -1,5 +1,6 @@
 ﻿using CeresBench.Models.Application;
 using CommunityToolkit.Mvvm.ComponentModel;
+using FluentIcons.Common.Internals;
 using Ivi.Visa;
 using System;
 using System.Collections.ObjectModel;
@@ -229,7 +230,15 @@ public partial class GenericDMMViewModel : ViewModelBase
     }
 
     [ObservableProperty]
-    private string _measuredValue = String.Empty;
+    public string _measuredValue = "-123.456,789,000";
+    [ObservableProperty]
+    public string _measuredUnit = "VDC";
+    [ObservableProperty]
+    public string _avgValue = "Avg: -123.456,789,000";
+    [ObservableProperty]
+    public string _minValue = "Min: -123.456,789,000";
+    [ObservableProperty]
+    public string _maxValue = "Max: -123.456,789,000";
 
     public GenericDMMViewModel(XmlNode node, IMessageBasedSession instrumentSession)
     {
@@ -238,7 +247,36 @@ public partial class GenericDMMViewModel : ViewModelBase
         {
             if (e.PropertyName == nameof(_model.MeasuredValue))
             {
-                MeasuredValue = _model.MeasuredValue;
+                double absValue = Math.Abs(_model.MeasuredValue);
+                string prefix = "";
+                switch (absValue)
+                {
+                    case < 1e-6:
+                        absValue *= 1e9;
+                        prefix = "n";
+                        break;
+                    case < 1e-3:
+                        absValue *= 1e6;
+                        prefix = "u";
+                        break;
+                    case > 1e9:
+                        absValue /= 1e6;
+                        prefix = "G";
+                        break;
+                    case > 1e6:
+                        absValue /= 1e6;
+                        prefix = "M";
+                        break;
+                    case > 1e3:
+                        absValue /= 1e3;
+                        prefix = "k";
+                        break;
+                }
+                MeasuredUnit = prefix + MeasurementModeList[MeasurementModeSelectedIndex].Unit;
+                MeasuredValue = FormatWithCommasAndPrecision(_model.MeasuredValue);
+                AvgValue = "Avg: " + MeasuredValue;
+                MinValue = "Min: " + MeasuredValue;
+                MaxValue = "Max: " + MeasuredValue;
             }
         };
         var now = _model.GetMode();
@@ -250,4 +288,71 @@ public partial class GenericDMMViewModel : ViewModelBase
             }
         }
     }
+
+    public static string FormatWithCommasAndPrecision(double value)
+    {
+        double absValue = Math.Abs(value);
+        switch (absValue)
+        {
+            case < 1e-6:
+                absValue *= 1e9;
+                break;
+            case < 1e-3:
+                absValue *= 1e6;
+                break;
+            case > 1e9:
+                absValue /= 1e6;
+                break;
+            case > 1e6:
+                absValue /= 1e6;
+                break;
+            case > 1e3:
+                absValue /= 1e3;
+                break;
+        }
+        string numStr = absValue.ToString("F9");
+        if ((int)absValue < 10)
+        {
+            numStr = "00" + numStr;
+        }
+        else if ((int)absValue < 100)
+        {
+            numStr = "0" + numStr;
+        }
+        int originalLength = numStr.Length;
+        numStr = numStr.TrimEnd('0').TrimEnd('.');
+        int trimmedCount = originalLength - numStr.Length;
+        numStr += new string('0', trimmedCount % 3);
+
+        string[] parts = numStr.Split('.');
+        string intPart = parts[0];
+        string decimalPart = parts.Length > 1 ? parts[1] : "";
+
+        string formattedIntPart = "";
+        for (int i = intPart.Length - 1, count = 0; i >= 0; i--)
+        {
+            if (count > 0 && count % 3 == 0)
+                formattedIntPart = "," + formattedIntPart;
+            formattedIntPart = intPart[i] + formattedIntPart;
+            count++;
+        }
+
+        string formattedDecimalPart = "";
+        for (int i = 0; i < decimalPart.Length; i++)
+        {
+            if (i > 0 && i % 3 == 0)
+                formattedDecimalPart += ",";
+            formattedDecimalPart += decimalPart[i];
+        }
+
+        string result = formattedIntPart;
+        if (!string.IsNullOrWhiteSpace(formattedDecimalPart))
+            result += "." + formattedDecimalPart;
+
+        result = (value < 0 ? "-" : "+") + result;
+
+        return result;
+    }
+
+
 }
