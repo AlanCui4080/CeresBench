@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Resources;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -14,6 +15,8 @@ namespace CeresBench.Models.Application;
 
 public partial class CeresGenericDMMMModel : ObservableObject
 {
+    // 添加对象锁
+    private readonly object _ioLock = new object();
 
     public class ComboNumericType
     {
@@ -89,6 +92,9 @@ public partial class CeresGenericDMMMModel : ObservableObject
 
     public ObservableCollection<MeasurementModeItem> MeasurementModeList = new();
     private List<string> _preInitInstructionList = new();
+    private bool _supportSRQ;
+    private bool _supportOPC;
+    private bool _supportMAV;
     private string? _switchModeInstrcution;
     private string? _postInitQuery;
     private string? _dispOnInstruction;
@@ -96,19 +102,28 @@ public partial class CeresGenericDMMMModel : ObservableObject
 
     [ObservableProperty]
     private string _measuredValue = "";
-
     private IMessageBasedSession _instrumentSession;
+
+    private long _queryCount = 0;
+    private long _lastQueryCount = 0;
+    private readonly System.Timers.Timer _statsTimer;
 
     public void Send(string instruction, string param)
     {
         Debug.WriteLine($"[ApplicationCenericDMMModel] send {instruction} {param}");
-        _instrumentSession.FormattedIO.WriteLine($"{instruction} {param}");
+        lock (_ioLock)
+        {
+            _instrumentSession.FormattedIO.WriteLine($"{instruction} {param}");
+        }
     }
 
     public void SwitchMode(string mode)
     {
         Debug.WriteLine($"[ApplicationCenericDMMModel] switch mode {mode}");
-        _instrumentSession.FormattedIO.WriteLine($"{_switchModeInstrcution} {mode}");
+        lock (_ioLock)
+        {
+            _instrumentSession.FormattedIO.WriteLine($"{_switchModeInstrcution} {mode}");
+        }
     }
 
     public string GetMode()
@@ -119,8 +134,14 @@ public partial class CeresGenericDMMMModel : ObservableObject
 
     public string Query(string instruction)
     {
-        _instrumentSession.FormattedIO.WriteLine($"{instruction}?");
-        var result = _instrumentSession.FormattedIO.ReadLine().TrimEnd();
+        string result;
+        lock (_ioLock)
+        {
+
+            _instrumentSession.FormattedIO.WriteLine($"{instruction}?");
+            result = _instrumentSession.FormattedIO.ReadLine().TrimEnd();
+
+        }
         Debug.WriteLine($"[ApplicationCenericDMMModel] query {instruction}? result {result}");
         return result;
     }
@@ -133,6 +154,16 @@ public partial class CeresGenericDMMMModel : ObservableObject
     public CeresGenericDMMMModel(XmlNode appNode, IMessageBasedSession instrumentSession)
     {
         _instrumentSession = instrumentSession;
+        
+        _statsTimer = new System.Timers.Timer(1000);
+        _statsTimer.Elapsed += (s, e) =>
+        {
+            var currentCount = Interlocked.Read(_queryCount);
+            var queriesPerSecond = currentCount - _lastQueryCount;
+            _lastQueryCount = currentCount;
+            Debug.WriteLine($"[Performance] Queries/sec: {queriesPerSecond}");
+        };
+        _statsTimer.Start();
 
         foreach (XmlNode? childNode in appNode.ChildNodes)
         {
@@ -151,6 +182,33 @@ public partial class CeresGenericDMMMModel : ObservableObject
                                 break;
                             case "PostInit":
                                 _postInitQuery = key.InnerText;
+                                break;
+                        }
+                    }
+                    break;
+                case "IEEE488.2":
+                    foreach (XmlNode key in childNode.ChildNodes)
+                    {
+                        switch (key?.Name)
+                        {
+                            case "SupportOPC":
+                                _supportOPC = Convert.ToUInt32(key.InnerText) == 0 ? false : true;
+                                break;
+                            case "SupportMAV":
+                                _supportMAV = Convert.ToUInt32(key.InnerText) == 0 ? false : true;
+                                break;
+                            case "SupportSRQ":
+                                _supportSRQ = Convert.ToUInt32(key.InnerText) == 0 ? false : true;
+                            //    if (Convert.ToUInt32(key.InnerText) == 0 ? false : true)
+                            //        _instrumentSession.EnableEvent(EventType.ServiceRequest);
+                            //    break;
+                            //case "SupportClear":
+                            //    if (Convert.ToUInt32(key.InnerText) == 0 ? false : true)
+                            //        _instrumentSession.EnableEvent(EventType.Clear);
+                            //    break;
+                            //case "SuppoertTrigger":
+                            //    if (Convert.ToUInt32(key.InnerText) == 0 ? false : true)
+                            //        _instrumentSession.EnableEvent(EventType.Trigger);
                                 break;
                         }
                     }
@@ -208,41 +266,74 @@ public partial class CeresGenericDMMMModel : ObservableObject
                     break;
             }
         }
-        //Task.Run(() =>
-        //{
-        //    while (true)
-        //    {
-        //        try
-        //        {
-        //            if (ResourceManager.FormattedIO != null)
-        //            {
-        //                ResourceManager.FormattedIO.WriteLine("TRIG:SOUR IMM");
-        //                ResourceManager.FormattedIO.WriteLine("READ?");
-        //                var value = ResourceManager.FormattedIO.ReadDouble();
-        //                if (value >= 9.90000000E+37)
-        //                {
-        //                    MeasuredValue = "OVLD";
-        //                }
-        //                else
-        //                {
-        //                    MeasuredValue = FormatWithCommasAndPrecision(value);
-        //                }
-        //            }
-        //        }
-        //        catch (IOTimeoutException ex)
-        //        {
-        //            _ = ex;
-        //        }
-        //        catch
-        //        {
-        //            throw;
-        //        }
-        //        finally
-        //        {
-        //            Task.Delay(10).Wait();
-        //        }
-        //    }
-        //});
+        Task.Run(() =>
+        {
+            Task.Delay(1000).Wait();
+            while (true)
+            {
+                double value = double.NaN;
+
+                lock (_ioLock)
+                {
+                    if (_supportMAV)
+                    {
+                        _instrumentSession.FormattedIO.WriteLine("READ?");
+                        var delay = 2;
+                        while (!_instrumentSession.ReadStatusByte().HasFlag(StatusByteFlags.MessageAvailable))
+                        {
+                            Task.Delay(delay / 1000).Wait();
+                            delay *= 2;
+                            if (delay >= 100000)
+                            {
+                                throw new TimeoutException("DMM MAV Poolling Timeout");
+                            }
+                        }
+                        value = _instrumentSession.FormattedIO.ReadLineDouble();
+                        Interlocked.Increment(ref _queryCount);
+                    }
+                    else if (_supportOPC)
+                    {
+
+                        _instrumentSession.FormattedIO.WriteLine("INIT");
+                        var delay = 2;
+                        do
+                        {
+                            Task.Delay(delay / 1000).Wait();
+                            delay *= 2;
+                            if (delay >= 100000)
+                            {
+                                throw new TimeoutException("DMM OPC Poolling Timeout");
+                            }
+                            _instrumentSession.FormattedIO.WriteLine("*OPC?");
+                        }
+                        while (Convert.ToUInt32(_instrumentSession.FormattedIO.ReadLineDouble()) == 0);
+
+                        _instrumentSession.FormattedIO.WriteLine("FETC?");
+                        value = _instrumentSession.FormattedIO.ReadLineDouble();
+                        Interlocked.Increment(ref _queryCount);
+                    }
+                }
+
+                if (Math.Abs(value) >= 9.90000000E+36)
+                {
+                    MeasuredValue = "OVLD";
+                }
+                else if ((double.IsNaN(Math.Abs(value))))
+                {
+                    MeasuredValue = "NaN";
+                }
+                else
+                {
+                    MeasuredValue = FormatWithCommasAndPrecision(value, "V");
+                }
+            }
+        });
+    }
+
+    ~CeresGenericDMMMModel()
+    {
+        _statsTimer?.Stop();
+        _statsTimer?.Dispose();
     }
 
     public static string FormatWithCommasAndPrecision(double value, string unit, int totalDigits = 10)

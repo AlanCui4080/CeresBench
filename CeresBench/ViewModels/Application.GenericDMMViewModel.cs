@@ -229,7 +229,7 @@ public partial class GenericDMMViewModel : ViewModelBase
     }
 
     [ObservableProperty]
-    private string _measuredValue = "";
+    private string _measuredValue = String.Empty;
 
     public GenericDMMViewModel(XmlNode node, IMessageBasedSession instrumentSession)
     {

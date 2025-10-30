@@ -9,6 +9,13 @@
       <SetOff>DISP OFF</SetOff>
       <SetOn>DISP ON</SetOn>
     </Display>
+    <IEEE488.2>
+      <SupportMAV>1</SupportMAV>
+      <SupportOPC>1</SupportOPC>
+      <SupportSRQ>1</SupportSRQ>
+      <SupportClear>1</SupportClear>
+      <SupportTrigger>1</SupportTrigger>
+    </IEEE488.2>
     <Trigger>
       <Immdediate>TRIG:SOUR IMM</Immdediate>
       <Bus>TRIG:SOUR BUS</Bus>
