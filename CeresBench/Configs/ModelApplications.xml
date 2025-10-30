@@ -34,6 +34,33 @@
       <ToggleAutoRange>SENS:VOLT:DC:RANG:AUTO</ToggleAutoRange>
       <ToggleAutoZero>SENS:ZERO:AUTO</ToggleAutoZero>
     </MeasureMode>
+    <MeasureMode name="DC Current">
+      <Unit>ADC</Unit>
+      <ModeString>"CURR"</ModeString>
+      <SetRange type="FixedList" list="0.01,0.1,1,3">SENS:CURR:DC:RANG</SetRange>
+      <SetNPLC type="FixedList" list="0.02,0.2,1,10,100">SENS:CURR:DC:NPLC</SetNPLC>
+      <ToggleHiZ>INP:IMP:AUTO</ToggleHiZ>
+      <ToggleAutoRange>SENS:CURR:DC:RANG:AUTO</ToggleAutoRange>
+      <ToggleAutoZero>SENS:ZERO:AUTO</ToggleAutoZero>
+    </MeasureMode>
+    <MeasureMode name="2-Wire Ohm">
+      <Unit>Ohm</Unit>
+      <ModeString>"RES"</ModeString>
+      <SetRange type="FixedList" list="100,1000,10000,100000,1000000,10000000,10000000">SENS:RES:RANG</SetRange>
+      <SetNPLC type="FixedList" list="0.02,0.2,1,10,100">SENS:RES:NPLC</SetNPLC>
+      <ToggleHiZ>INP:IMP:AUTO</ToggleHiZ>
+      <ToggleAutoRange>SENS:RES:RANG:AUTO</ToggleAutoRange>
+      <ToggleAutoZero>SENS:ZERO:AUTO</ToggleAutoZero>
+    </MeasureMode>
+    <MeasureMode name="4-Wire Ohm">
+      <Unit>Ohm</Unit>
+      <ModeString>"FRES"</ModeString>
+      <SetRange type="FixedList" list="100,1000,10000,100000,1000000,10000000,10000000">SENS:FRES:RANG</SetRange>
+      <SetNPLC type="FixedList" list="0.02,0.2,1,10,100">SENS:FRES:NPLC</SetNPLC>
+      <ToggleHiZ>INP:IMP:AUTO</ToggleHiZ>
+      <ToggleAutoRange>SENS:FRES:RANG:AUTO</ToggleAutoRange>
+      <ToggleAutoZero>SENS:ZERO:AUTO</ToggleAutoZero>
+    </MeasureMode>
     <MeasureMode name="AC Voltage">
       <Unit>VAC</Unit>
       <ModeString>"VOLT:AC"</ModeString>
@@ -41,6 +68,15 @@
       <SetBandWidth type="FixedList" list="3,20,200">SENS:DET:BAND</SetBandWidth>
       <ToggleHiZ>INP:IMP:AUTO</ToggleHiZ>
       <ToggleAutoRange>SENS:VOLT:AC:RANG:AUTO</ToggleAutoRange>
+      <ToggleAutoZero>SENS:ZERO:AUTO</ToggleAutoZero>
+    </MeasureMode>
+    <MeasureMode name="AC Current">
+      <Unit>AAC</Unit>
+      <ModeString>"CURR:AC"</ModeString>
+      <SetRange type="FixedList" list="1,3">SENS:CURR:AC:RANG</SetRange>
+      <SetBandWidth type="FixedList" list="3,20,200">SENS:DET:BAND</SetBandWidth>
+      <ToggleHiZ>INP:IMP:AUTO</ToggleHiZ>
+      <ToggleAutoRange>SENS:CURR:AC:RANG:AUTO</ToggleAutoRange>
       <ToggleAutoZero>SENS:ZERO:AUTO</ToggleAutoZero>
     </MeasureMode>
 </Application>

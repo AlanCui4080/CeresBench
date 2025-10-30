@@ -292,6 +292,10 @@ public partial class GenericDMMViewModel : ViewModelBase
     public static string FormatWithCommasAndPrecision(double value)
     {
         double absValue = Math.Abs(value);
+        if (absValue > 9.9e+30)
+        {
+            return "OVLD ";
+        }
         switch (absValue)
         {
             case < 1e-6:
@@ -311,7 +315,11 @@ public partial class GenericDMMViewModel : ViewModelBase
                 break;
         }
         string numStr = absValue.ToString("F9");
-        if ((int)absValue < 10)
+        if ((int)absValue < 1)
+        {
+            // do nothing
+        }
+        else if ((int)absValue < 10)
         {
             numStr = "00" + numStr;
         }

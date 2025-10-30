@@ -231,19 +231,22 @@ public partial class VISAResourceManagerModel
                 Debug.WriteLine($"[VISAResourceManagerModel] found cache for {v}");
                 item.Present = "From Cache";
             }
-            VisaResourceList.Add(item);
+            VisaResourceList.Add(item); // preview for user 
         }
         
         for (int i = 0; i < VisaResourceList.Count; i++)
         {
             var idx = i;
-            Task.Run(() => {
-                Debug.WriteLine($"[VISAResourceManagerModel] started probe/update for {VisaResourceList[idx].VisaResourceName}");
-                var probeResult = GetVisaResourceItemByNameViaTestConnection(VisaResourceList[idx].VisaResourceName);
-                VisaResourceList[idx] = probeResult;
-                SaveToCache(probeResult);
-                Debug.WriteLine($"[VISAResourceManagerModel] completed probe/update for {VisaResourceList[idx].VisaResourceName}");
-            });
+            if (VisaResourceList[idx].Present != "From Cache")
+            {
+                Task.Run(() => {
+                    Debug.WriteLine($"[VISAResourceManagerModel] started probe/update for {VisaResourceList[idx].VisaResourceName}");
+                    var probeResult = GetVisaResourceItemByNameViaTestConnection(VisaResourceList[idx].VisaResourceName);
+                    VisaResourceList[idx] = probeResult;
+                    SaveToCache(probeResult);
+                    Debug.WriteLine($"[VISAResourceManagerModel] completed probe/update for {VisaResourceList[idx].VisaResourceName}");
+                });
+            }
         }
     }
 }
