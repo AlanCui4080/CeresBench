@@ -15,7 +15,7 @@ namespace CeresBench.Models.Application;
 
 public partial class CeresGenericDMMMModel : ObservableObject
 {
-    // 添加对象锁
+    private bool _isConfigurationInProgress;
     private readonly object _ioLock = new object();
 
     public class ComboNumericType
@@ -113,7 +113,9 @@ public partial class CeresGenericDMMMModel : ObservableObject
         Debug.WriteLine($"[ApplicationCenericDMMModel] send {instruction} {param}");
         lock (_ioLock)
         {
+            _isConfigurationInProgress = true;
             _instrumentSession.FormattedIO.WriteLine($"{instruction} {param}");
+            _isConfigurationInProgress = false;
         }
     }
 
@@ -122,7 +124,9 @@ public partial class CeresGenericDMMMModel : ObservableObject
         Debug.WriteLine($"[ApplicationCenericDMMModel] switch mode {mode}");
         lock (_ioLock)
         {
+            _isConfigurationInProgress = true;
             _instrumentSession.FormattedIO.WriteLine($"{_switchModeInstrcution} {mode}");
+            _isConfigurationInProgress = false;
         }
     }
 
@@ -138,9 +142,10 @@ public partial class CeresGenericDMMMModel : ObservableObject
         lock (_ioLock)
         {
 
+            _isConfigurationInProgress = true;
             _instrumentSession.FormattedIO.WriteLine($"{instruction}?");
             result = _instrumentSession.FormattedIO.ReadLine().TrimEnd();
-
+            _isConfigurationInProgress = false;
         }
         Debug.WriteLine($"[ApplicationCenericDMMModel] query {instruction}? result {result}");
         return result;
@@ -158,7 +163,7 @@ public partial class CeresGenericDMMMModel : ObservableObject
         _statsTimer = new System.Timers.Timer(1000);
         _statsTimer.Elapsed += (s, e) =>
         {
-            var currentCount = Interlocked.Read(_queryCount);
+            var currentCount = Interlocked.Read(ref _queryCount);
             var queriesPerSecond = currentCount - _lastQueryCount;
             _lastQueryCount = currentCount;
             Debug.WriteLine($"[Performance] Queries/sec: {queriesPerSecond}");
@@ -283,7 +288,11 @@ public partial class CeresGenericDMMMModel : ObservableObject
             while (true)
             {
                 double value = double.NaN;
-
+                if(_isConfigurationInProgress)
+                {
+                    Task.Delay(100).Wait();
+                    continue;
+                }
                 lock (_ioLock)
                 {
                     if (_supportMAV)
