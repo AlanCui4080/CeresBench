@@ -266,6 +266,17 @@ public partial class CeresGenericDMMMModel : ObservableObject
                     break;
             }
         }
+        foreach (var instr in _preInitInstructionList)
+        {
+            Debug.WriteLine($"[ApplicationCenericDMMModel] pre-init send {instr}");
+            lock (_ioLock)
+            {
+                _instrumentSession.FormattedIO.WriteLine(instr);
+            }
+        }
+        _instrumentSession.FormattedIO.WriteLine(_postInitQuery);
+        Debug.WriteLine($"[ApplicationCenericDMMModel] post-init send {_postInitQuery}");
+        _ = _instrumentSession.FormattedIO.ReadLine();
         Task.Run(() =>
         {
             Task.Delay(1000).Wait();
@@ -283,7 +294,7 @@ public partial class CeresGenericDMMMModel : ObservableObject
                         {
                             Task.Delay(delay / 1000).Wait();
                             delay *= 2;
-                            if (delay >= 100000)
+                            if (delay >= 10000000)
                             {
                                 throw new TimeoutException("DMM MAV Poolling Timeout");
                             }
@@ -300,7 +311,7 @@ public partial class CeresGenericDMMMModel : ObservableObject
                         {
                             Task.Delay(delay / 1000).Wait();
                             delay *= 2;
-                            if (delay >= 100000)
+                            if (delay >= 10000000)
                             {
                                 throw new TimeoutException("DMM OPC Poolling Timeout");
                             }

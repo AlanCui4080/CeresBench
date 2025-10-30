@@ -2,6 +2,7 @@
 <Config>
   <Application name="GenericDMM" match="HEWLETT-PACKARD.*34401A.*">
     <Init>
+      <PreInit>*RST</PreInit>
       <PreInit>*CLS</PreInit>
       <PostInit>*OPC?</PostInit>
     </Init>

@@ -63,7 +63,7 @@
 					</StackPanel>
 				</SplitView.Pane>
 				<StackPanel Orientation="Horizontal">
-					<TextBlock Text="{Binding MeasuredValue}" FontSize="80" HorizontalAlignment="Center"/>
+					<TextBlock Text="{Binding MeasuredValue}" FontFamily="Consolas" FontSize="80" HorizontalAlignment="Center"/>
 				</StackPanel>
 			</SplitView>
 		</TabItem>
